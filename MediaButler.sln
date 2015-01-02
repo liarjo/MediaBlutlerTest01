@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Common", "MediaButler.Common\MediaButler.Common.csproj", "{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Watcher", "MediaButler.Watcher\MediaButler.Watcher.csproj", "{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Workflow", "MediaButler.Workflow\MediaButler.Workflow.csproj", "{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.BaseProcess", "MediaButler.BaseProcess\MediaButler.BaseProcess.csproj", "{3D7A2C36-62C3-4303-99A5-8ED7454708FA}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "MediaButler.AllinOne", "MediaButler.AllinOne\MediaButler.AllinOne.ccproj", "{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaButlerInstall", "MediaButlerInstall", "{34A57BB8-43ED-4FD9-8BFB-F8A9D2ABEBED}"
+	ProjectSection(SolutionItems) = preProject
+		MediaButlerDeploy.ps1 = MediaButlerDeploy.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4AE42AE7-1528-4BB3-AAE2-A7558407B58E}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{167EDADD-EC42-4C93-B2C5-DD4B3841A400}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		EnterpriseLibraryConfigurationToolBinariesPath = packages\TransientFaultHandling.Core.5.1.1209.1\lib\NET4
+	EndGlobalSection
+EndGlobal

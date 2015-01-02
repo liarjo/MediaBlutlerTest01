@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>2.4</ProductVersion>
+    <ProjectGuid>48bd2b05-17b2-41a5-9a0e-89243f9aaec2</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MediaButler.AllinOne</RootNamespace>
+    <AssemblyName>MediaButler.AllinOne</AssemblyName>
+    <StartDevelopmentStorage>True</StartDevelopmentStorage>
+    <Name>MediaButler.AllinOne</Name>
+    <PackageEnableRemoteDebugger>False</PackageEnableRemoteDebugger>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!-- Items for the project -->
+  <ItemGroup>
+    <ServiceDefinition Include="ServiceDefinition.csdef" />
+    <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
+    <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MediaButler.Watcher\MediaButler.Watcher.csproj">
+      <Name>MediaButler.Watcher</Name>
+      <Project>{95642ebc-0c45-4e6b-80e6-68fd95b4d1cc}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>MediaButler.Watcher</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+    <ProjectReference Include="..\MediaButler.Workflow\MediaButler.Workflow.csproj">
+      <Name>MediaButler.Workflow</Name>
+      <Project>{4efff6fd-f5f2-4ed8-9a6e-c7efaa05393d}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>MediaButler.Workflow</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MediaButler.WatcherContent\" />
+    <Folder Include="MediaButler.WorkflowContent\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="MediaButler.WatcherContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MediaButler.WorkflowContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <!-- Import the target files for this project template -->
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <CloudExtensionsDir Condition=" '$(CloudExtensionsDir)' == '' ">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Windows Azure Tools\2.4\</CloudExtensionsDir>
+  </PropertyGroup>
+  <Import Project="$(CloudExtensionsDir)Microsoft.WindowsAzure.targets" />
+</Project>

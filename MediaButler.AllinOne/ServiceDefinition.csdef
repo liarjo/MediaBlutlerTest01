@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="MediaButler.AllinOne" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
+  <WorkerRole name="MediaButler.Workflow" vmsize="Small">
+    <Imports>
+      <Import moduleName="Diagnostics" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" />
+    </ConfigurationSettings>
+  </WorkerRole>
+  <WorkerRole name="MediaButler.Watcher" vmsize="Small">
+    <Imports>
+      <Import moduleName="Diagnostics" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" />
+    </ConfigurationSettings>
+  </WorkerRole>
+</ServiceDefinition>
