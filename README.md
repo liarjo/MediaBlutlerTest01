@@ -47,15 +47,15 @@ This version has this process steps ready to use:
 
 You only need to setup this variable
 
-a. $azureSubscriptionName
-b. $butlerStorageAccountName
-c. $MediaServiceAccountName
-d. $PrimaryMediaServiceAccessKey
-e. $MediaStorageConn
-f. $SendGridStepConfig
-g. $serviceName
-h. $slot="Production"
-i. $serviceLocation
+a. $azureSubscriptionName<br>
+b. $butlerStorageAccountName<br>
+c. $MediaServiceAccountName<br>
+d. $PrimaryMediaServiceAccessKey<br>
+e. $MediaStorageConn<br>
+f. $SendGridStepConfig<br>
+g. $serviceName<br>
+h. $slot="Production"<br>
+i. $serviceLocation<br>
 
 Execute the script, and that is!
 
