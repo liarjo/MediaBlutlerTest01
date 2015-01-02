@@ -30,10 +30,10 @@ This version has this process steps ready to use:
  <h2>How to deploy Media Butler Framework</h2>
   <h3>Setup pre requisites</h3>
 
-  <li> Azure Subscription</li>
-  <li> Azure Media Services Name and Key</li>
-  <li> Empty Azure Storage Account Name for Media Butler Framework</li>
-  <li> Optional: SendGrid account</li>
+  1. Azure Subscription
+  2. Azure Media Services Name and Key
+  3. Empty Azure Storage Account Name for Media Butler Framework
+  4. [Optional] SendGrid account
 
   <h3>Deploy Media Butler all in one</h3>
   Media Butler Framework (MBF) has a deployment PowerShell script. This script deploy MBF in the All in one deployment and create a basic process, ready to use. This basis process´s steps are:
@@ -47,15 +47,15 @@ This version has this process steps ready to use:
 
 You only need to setup this variable
 
-> $azureSubscriptionName
-> $butlerStorageAccountName
-> $MediaServiceAccountName
-> $PrimaryMediaServiceAccessKey
-> $MediaStorageConn
-> $SendGridStepConfig
-> $serviceName
-> $slot="Production"
-> $serviceLocation
+a. $azureSubscriptionName
+b. $butlerStorageAccountName
+c. $MediaServiceAccountName
+d. $PrimaryMediaServiceAccessKey
+e. $MediaStorageConn
+f. $SendGridStepConfig
+g. $serviceName
+h. $slot="Production"
+i. $serviceLocation
 
 Execute the script, and that is!
 
