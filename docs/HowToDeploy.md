@@ -1,10 +1,10 @@
-<head>
+
     <style type="text/css">
         .auto-style1 {
             color: #3366CC;
         }
     </style>
-</head>
+
     <h1 class="auto-style1">How to deploy Media Butler Framework</h1>
 <h2 class="auto-style1">Deploy Overview</h2>
 <p>This blog post explain how to deploy and test a basic VOD process using Media Butler Framework. It is compose by one cloud services with 2 workers roles: Watcher and Workflow role. First one take the new files and submit it to Workflow Manager by ButlerSend Queue. When a new job is summited, this role move the original files form Incoming folder to Processing. Once the process finish, success or fail, this role receive a message and process it. If the process was success, it will move the original date from Processing to Success folder. In the fail case, will move to Fail folder.</p>
