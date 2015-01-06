@@ -36,7 +36,7 @@ This version has this process steps ready to use:
   4. [Optional] SendGrid account
 
   <h3>Deploy Media Butler all in one</h3>
-  Media Butler Framework (MBF) has a deployment PowerShell script. This script deploy MBF in the All in one deployment and create a basic process, ready to use. This basis process´s steps are:
+  Media Butler Framework (MBF) has a deployment PowerShell <a href="./MediaButlerDeploy.ps1">script</a>. This script deploy MBF in the All in one deployment and create a basic process, ready to use. This basis process´s steps are:
 
   1. Ingest the mezzanine file
   2. Encode using default profile
@@ -47,15 +47,15 @@ This version has this process steps ready to use:
 
 You only need to setup this variable
 
-a. $azureSubscriptionName<br>
-b. $butlerStorageAccountName<br>
-c. $MediaServiceAccountName<br>
-d. $PrimaryMediaServiceAccessKey<br>
-e. $MediaStorageConn<br>
-f. $SendGridStepConfig<br>
-g. $serviceName<br>
+a. $azureSubscriptionName: Azure subscription name<br>
+b. $butlerStorageAccountName: Butler's storage account name<br>
+c. $MediaServiceAccountName: AMS account name<br>
+d. $PrimaryMediaServiceAccessKey: AMS access Key<br>
+e. $MediaStorageConn: AMS storage account connection string<br>
+f. $SendGridStepConfig: Options, if you want to use SendGrid Mail Notification yo need to add your step configuration here.<br>
+g. $serviceName: Cloud Services Name for Media Butler<br>
 h. $slot="Production"<br>
-i. $serviceLocation<br>
+i. $serviceLocation: Cloud Services Location, it must be in the same AMS's location<br>
 
 Execute the script, and that is!
 
