@@ -12,16 +12,16 @@ $MediaStorageConn="[your Storage Account connection string]"
 #[Optional] Send Grid configuration, if you don't use Sendgrig keep empty string
 #Example "{ ""UserName"":""xxxxxxxxxxx@azure.com"", ""Pswd"":""xxxxxxxxxxx"", ""To"":""admin@yourdomain.com"", ""FromName"": ""Butler Media Framework"", ""FromMail"": ""butler@media.com"" }"
 $SendGridStepConfig=""
-
 #Media Butler Cloud Services Name
-$serviceName="MediaButlerFramework001"
+$serviceName="[you Cloud Service Name here]"
+#Media Butler Cloud Services Location
+$serviceLocation="[your Cloud Service and Media Services Region]"
+
+#Constante, not change
 #Media Butler Cloud Services Slot
 $slot="Production"
-#Media Butler Cloud Services Location
-$serviceLocation="East US"
-#Constante, not change
 #Media Butler Package URL
-$package_url="http://aka.ms/MediaButlerCspkg"
+$package_url="https://mediabutler.blob.core.windows.net/apppublish/20141219%2FMediaButler.AllinOne.cspkg?sr=b&sv=2014-02-14&st=2015-01-06T17%3A41%3A35Z&se=2019-01-06T18%3A41%3A00Z&sp=r&sig=wKwJWl0zTPvQwvPDFQvng1Dcj3rqjsCYT2pQnlLHwGc%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
 
@@ -111,58 +111,68 @@ Function DeployBulter($_serviceName,$_slot,$_package_url,$_serviceLocation,$_con
 }
 
 
-#1. setup
-#1.1 Set-AzureSubscription $azureSubscriptionName
-     Set-AzureSubscription -SubscriptionName $azureSubscriptionName  -CurrentStorageAccountName $butlerStorageAccountName
-	 Select-AzureSubscription -SubscriptionName  $azureSubscriptionName
-#2. Create Media Butler Configuration Table
-    $sKey=Get-AzureStorageKey -StorageAccountName $butlerStorageAccountName
-    $sExternalConnString='DefaultEndpointsProtocol=https;AccountName=' + $butlerStorageAccountName +';AccountKey='+ $sKey.Primary +''
-    $butlerStorageContext= New-AzureStorageContext -StorageAccountKey $skey.Primary -StorageAccountName $butlerStorageAccountName
-     
-    New-AzureStorageTable -Context $butlerStorageContext -Name "ButlerConfiguration"
-   
-#3. Create Queues butlerfailed,butlersend
-    New-AzureStorageQueue -Name "butlerfailed" -Context $butlerStorageContext
-    New-AzureStorageQueue -Name "butlersend" -Context $butlerStorageContext
-    New-AzureStorageQueue -Name "butlersuccess" -Context $butlerStorageContext
-#4. Create Bin Container
-    New-AzureStorageContainer -Name "mediabutlerbin" -Context $butlerStorageContext -Permission Off
+try
+{
 
-#5. Media Butler config Data
-       InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "IsMultiTask" -value "1" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole" -RowKey "roleconfig" -value "{""MaxCurrentProcess"":1,""SleepDelay"":5,""MaxDequeueCount"":3}" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "MediaServiceAccountName" -value $MediaServiceAccountName -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "MediaStorageConn" -value $MediaStorageConn -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "PrimaryMediaServiceAccessKey" -value $PrimaryMediaServiceAccessKey -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-       InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+    #1. setup
+    #1.1 Set-AzureSubscription $azureSubscriptionName
+         Set-AzureSubscription -SubscriptionName $azureSubscriptionName  -CurrentStorageAccountName $butlerStorageAccountName
+	     Select-AzureSubscription -SubscriptionName  $azureSubscriptionName
+    #2. Create Media Butler Configuration Table
+        $sKey=Get-AzureStorageKey -StorageAccountName $butlerStorageAccountName
+        $sExternalConnString='DefaultEndpointsProtocol=https;AccountName=' + $butlerStorageAccountName +';AccountKey='+ $sKey.Primary +''
+        $butlerStorageContext= New-AzureStorageContext -StorageAccountKey $skey.Primary -StorageAccountName $butlerStorageAccountName
+     
+        New-AzureStorageTable -Context $butlerStorageContext -Name "ButlerConfiguration"
+   
+    #3. Create Queues butlerfailed,butlersend
+        New-AzureStorageQueue -Name "butlerfailed" -Context $butlerStorageContext
+        New-AzureStorageQueue -Name "butlersend" -Context $butlerStorageContext
+        New-AzureStorageQueue -Name "butlersuccess" -Context $butlerStorageContext
+    #4. Create Bin Container
+        New-AzureStorageContainer -Name "mediabutlerbin" -Context $butlerStorageContext -Permission Off
+
+    #5. Media Butler config Data
+           InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "IsMultiTask" -value "1" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole" -RowKey "roleconfig" -value "{""MaxCurrentProcess"":1,""SleepDelay"":5,""MaxDequeueCount"":3}" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "MediaServiceAccountName" -value $MediaServiceAccountName -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "MediaStorageConn" -value $MediaStorageConn -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "PrimaryMediaServiceAccessKey" -value $PrimaryMediaServiceAccessKey -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+           InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "5" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
       
-#6. Process Sample: Encode Multibitrate MP4
-    $butlerContainerStageName="testbasicprocess"
-    $context=$butlerContainerStageName + ".Context"
-    $chain=$butlerContainerStageName + ".ChainConfig"
-    if ($SendGridStepConfig -ne "")
-    {
-        #USe SendGrid
-        $processChain="[{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.IngestMultiMezzamineFilesStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.StandarEncodeStep"",""ConfigKey"":""StandarEncodeStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.DeleteOriginalAssetStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateStreamingLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateSasLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendMessageBackStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendGridStep"",""ConfigKey"":""SendGridStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""}]"
-        InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "SendGridStep.StepConfig" -value $SendGridStepConfig -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-    }
-    else
-    {
-        #Not use SendGridNotiifcation in sample process
-        $processChain="[{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.IngestMultiMezzamineFilesStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.StandarEncodeStep"",""ConfigKey"":""StandarEncodeStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.DeleteOriginalAssetStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateStreamingLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateSasLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendMessageBackStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""}]"
-    }
+    #6. Process Sample: Encode Multibitrate MP4
+        $butlerContainerStageName="testbasicprocess"
+        $context=$butlerContainerStageName + ".Context"
+        $chain=$butlerContainerStageName + ".ChainConfig"
+        if ($SendGridStepConfig -ne "")
+                        {
+            #USe SendGrid
+            $processChain="[{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.IngestMultiMezzamineFilesStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.StandarEncodeStep"",""ConfigKey"":""StandarEncodeStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.DeleteOriginalAssetStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateStreamingLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateSasLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendMessageBackStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendGridStep"",""ConfigKey"":""SendGridStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""}]"
+            InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "SendGridStep.StepConfig" -value $SendGridStepConfig -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+        }
+        else
+                    {
+            #Not use SendGridNotiifcation in sample process
+            $processChain="[{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.IngestMultiMezzamineFilesStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.StandarEncodeStep"",""ConfigKey"":""StandarEncodeStep""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.DeleteOriginalAssetStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateStreamingLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.CreateSasLocatorStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.SendMessageBackStep"",""ConfigKey"":""""},{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.MessageHiddeControlStep"",""ConfigKey"":""""}]"
+        }
     
   
-    New-AzureStorageContainer -Name $butlerContainerStageName -Context $butlerStorageContext -Permission Off
+        New-AzureStorageContainer -Name $butlerContainerStageName -Context $butlerStorageContext -Permission Off
   
-    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $context -value "{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.ButlerProcessRequest"",""ConfigKey"":""""}" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $chain -value $processChain -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "ContainersToScan" -value $butlerContainerStageName -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"
+        InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $context -value "{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.ButlerProcessRequest"",""ConfigKey"":""""}" -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+        InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $chain -value $processChain -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"  
+        InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "ContainersToScan" -value $butlerContainerStageName -accountName $butlerStorageAccountName -accountKey $sKey -tableName "ButlerConfiguration"
 
 
 
-#7. Deploy Cloud Services
-DeployBulter -_serviceName $serviceName -_package_url $package_url -_slot $slot -_serviceLocation $serviceLocation -_config_Url $config_Url -_sExternalConnString $sExternalConnString
+    #7. Deploy Cloud Services
+    DeployBulter -_serviceName $serviceName -_package_url $package_url -_slot $slot -_serviceLocation $serviceLocation -_config_Url $config_Url -_sExternalConnString $sExternalConnString
+}
+catch 
+{
+    $ErrorMessage = $_.Exception.Message
+    Write-Host  $ErrorMessage
+    
+}
