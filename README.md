@@ -70,4 +70,4 @@ Execute the script, and that is!
 
   <h3>More information</h3>
   1. <a href="">Intoduction to Azure Media Butler Framework</a>
-  2. <a href="./docs/HowToDeploy.html">How to Deploy and customize the VOD process</a>
+  2. <a href="./docs/HowToDeploy.md">How to Deploy and customize the VOD process</a>
