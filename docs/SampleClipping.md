@@ -152,6 +152,6 @@ IX.	Edit the URL for use the filter, for example<br />
     Related content</h2>
 <ul>
     <li><a href="../README.md">Media Butler Framework repository</a></li>
-    <li><a href="./docs/HowToDeploy.md">How to Deploy</a></li>
+    <li><a href="HowToDeploy.md">How to Deploy</a></li>
 </ul>
 
