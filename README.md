@@ -69,5 +69,6 @@ Execute the script, and that is!
 5. Now, your could go to the Media Butler Storage, and review the output info in the file  testbasicprocess/Completed/_[your MP4 video Name].[date and time].log
 
   <h3>More information</h3>
-  1. <a href="">Intoduction to Azure Media Butler Framework</a>
-  2. <a href="./docs/HowToDeploy.md">How to Deploy and customize the VOD process</a>
+  1. <a href="./docs/Introduction.md">Intoduction to Azure Media Butler Framework</a>
+  2. <a href="./docs/HowToDeploy.md">How to Deploy</a>
+  3. <a href="./docs/SampleClipping.md">Clipping Sample</a>
