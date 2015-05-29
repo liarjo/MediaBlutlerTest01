@@ -105,11 +105,13 @@ namespace MediaButler.Common
 
         public const string ButlerSendQueue = "butlersend";
         public const string ButlerSuccessQueue = "butlersuccess";
+        public const string ButlerResponseDeadLetter = "butlerresponsedeadletter";
         public const string ButlerFailedQueue = "butlerfailed";
 
         public const string ButlerExternalInfoContainer = "mediabutlerbin";
         public const string ButlerWorkflowStatus = "ButlerWorkflowStatus";
-        
+
+        public const int maxDequeueCount = 3;
         /// <summary>
         /// Get the configuration Value from the configuration Table. Response is a JSON format
         /// </summary>

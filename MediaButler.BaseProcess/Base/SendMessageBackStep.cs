@@ -25,6 +25,12 @@ namespace MediaButler.BaseProcess
             MediaButler.Common.ButlerResponse myButlerResponse = new Common.ButlerResponse();
 
             myButlerResponse.MezzanineFiles = myRequest.ButlerRequest.MezzanineFiles;
+            //Add to Mezzamine Files the control File URL if it exist
+            //Becouse it is needed to move/delete the control file from processing to succes or fail
+            if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
+            {
+                myButlerResponse.MezzanineFiles.Add(myRequest.ButlerRequest.ControlFileUri);
+            }
             myButlerResponse.TimeStampProcessingCompleted = DateTime.Now.ToString();
             myButlerResponse.TimeStampProcessingStarted = myRequest.TimeStampProcessingStarted.ToString();
             myButlerResponse.WorkflowName = myRequest.ProcessTypeId;

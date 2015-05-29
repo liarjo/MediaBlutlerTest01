@@ -73,16 +73,29 @@ namespace MediaButler.Watcher
 
         private async Task RunAsync(CancellationToken cancellationToken)
         {
+            if (RoleEnvironment.CurrentRoleInstance.Id.EndsWith("_IN_0"))
+            {
+                Trace.TraceWarning("Watcher is Running in multiples intance, just one is active. Active  Instance ID " + RoleEnvironment.CurrentRoleInstance.Id);
 
-            string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
+                string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
 
-            // Kick off the tasks that will handle watching for the two completed request queues.
-            var taskFailedRequests = Task.Run(() => JobManager.getWorkflowFailedOperations(cancellationToken, storageAccountString));
-            var taskSuccessfulRequests = Task.Run(() => JobManager.getWorkflowSuccessOperations(cancellationToken, storageAccountString));
-            // Note: list of containers was set in OnStart.
-            var taskProcessIncomingJobs = Task.Run(() => BlobWatcher.runInboundJobWatcher(cancellationToken, storageAccountString, ContainersToScan));
+                // Kick off the tasks that will handle watching for the two completed request queues.
+                var taskFailedRequests = Task.Run(() => JobManager.getWorkflowFailedOperations(cancellationToken, storageAccountString));
+                var taskSuccessfulRequests = Task.Run(() => JobManager.getWorkflowSuccessOperations(cancellationToken, storageAccountString));
+                // Note: list of containers was set in OnStart.
+                var taskProcessIncomingJobs = Task.Run(() => BlobWatcher.runInboundJobWatcher(cancellationToken, storageAccountString, ContainersToScan));
 
-            Task.WaitAll(taskFailedRequests, taskSuccessfulRequests, taskProcessIncomingJobs);
+                Task.WaitAll(taskFailedRequests, taskSuccessfulRequests, taskProcessIncomingJobs);
+            }
+            else
+            {
+                do
+                {
+                    Trace.TraceWarning("Watcher is Running in multiples intance, just one is active. Pasive Instance ID " + RoleEnvironment.CurrentRoleInstance.Id);
+                    Thread.Sleep(30 * 60 * 1000);
+                } while (true);
+                
+            }
         }
     }
 }

@@ -3,15 +3,15 @@
   <Role name="MediaButler.Workflow">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=kXEilqTL0CqMcyWWbDveq9wiqnyxGXneZ40fcN/i910qtw7OTvXxN4szeq9ydztnRDCPviT33F+VynXIb2ghyw==" />
-      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=kXEilqTL0CqMcyWWbDveq9wiqnyxGXneZ40fcN/i910qtw7OTvXxN4szeq9ydztnRDCPviT33F+VynXIb2ghyw==" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
     </ConfigurationSettings>
   </Role>
   <Role name="MediaButler.Watcher">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=kXEilqTL0CqMcyWWbDveq9wiqnyxGXneZ40fcN/i910qtw7OTvXxN4szeq9ydztnRDCPviT33F+VynXIb2ghyw==" />
-      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=kXEilqTL0CqMcyWWbDveq9wiqnyxGXneZ40fcN/i910qtw7OTvXxN4szeq9ydztnRDCPviT33F+VynXIb2ghyw==" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

@@ -118,7 +118,89 @@ namespace MediaButler.Watcher
             string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
             await getWorkflowSuccessOperations(ct, storageAccountString);
         }
+        private static ButlerResponse DeserializeRsponseMessage(string txtMsg)
+        {
+            ButlerResponse messageResponse = null;
+            try
+            {
+                messageResponse = JsonConvert.DeserializeObject<ButlerResponse>(txtMsg);
+            }
+            catch (Exception)
+            {
+                
+               
+            }
 
+            return messageResponse;
+        }
+        /// <summary>
+        /// Send message to dead letter queue 
+        /// </summary>
+        /// <param name="errorFrendlyMessage">Error message for LOG</param>
+        /// <param name="deadLetterQueueClient">Dead letter Queue </param>
+        /// <param name="poisonMessage">the message with problem</param>
+        private static void SendMessageToDeadLetterQueue(string errorFrendlyMessage, CloudQueueClient deadLetterQueueClient, CloudQueueMessage poisonMessage)
+        {
+            CloudQueue ButlerSuccessQueueDeadLetter = deadLetterQueueClient.GetQueueReference(Configuration.ButlerResponseDeadLetter);
+            ButlerSuccessQueueDeadLetter.CreateIfNotExists();
+            ButlerSuccessQueueDeadLetter.AddMessage(poisonMessage);
+            Trace.TraceError(errorFrendlyMessage);
+        }
+        /// <summary>
+        /// Process message Back fro success and Fial queues
+        /// </summary>
+        /// <param name="storageAccountString">Storage account</param>
+        /// <param name="queueName">Queue Name</param>
+        /// <param name="status">Workflow status</param>
+        private static void processMessageBack(string storageAccountString, string queueName,  Configuration.WorkflowStatus status)
+        {
+            string erroMsg;
+            Trace.TraceInformation("reading from workflow results queue: " + status.ToString());
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageAccountString);
+            CloudQueueClient inQueueClient = storageAccount.CreateCloudQueueClient();
+            CloudQueue inQueue = inQueueClient.GetQueueReference(queueName);
+            inQueue.CreateIfNotExists();
+            CloudQueueMessage retrievedMessage = inQueue.GetMessage();
+            if (retrievedMessage != null)
+            {
+                try
+                {
+                    if (retrievedMessage.DequeueCount > Configuration.maxDequeueCount)
+                    {
+                        //Poison Message
+                        erroMsg = String.Format("[0]Error: Max DequeueCount Messsage : {1}", "getWorkflowOperations_" + status.ToString(), retrievedMessage.AsString);
+                        SendMessageToDeadLetterQueue(erroMsg, inQueueClient, retrievedMessage);
+                    }
+                    else
+                    {
+                        ButlerResponse messageResponse = DeserializeRsponseMessage(retrievedMessage.AsString);
+                        if (messageResponse != null)
+                        {
+                            //Process the message
+                            Configuration.WorkflowStatus messageStatus = status;
+                            processFilesFromResponse(messageResponse, messageStatus, storageAccount);
+                        }
+                        else
+                        {
+                            //Message bad format ccopu to deadletter 
+                            erroMsg = String.Format("[0]Error: invalid Response message : {1}", "getWorkflowOperations_" + status.ToString(), retrievedMessage.AsString);
+                            SendMessageToDeadLetterQueue(erroMsg, inQueueClient, retrievedMessage);
+                        }
+                    }
+                    // TODO: updateQueuemessage if it is taking longer
+                    //Process the message in less than 30 seconds, and then delete the message
+                    inQueue.DeleteMessage(retrievedMessage);
+                }
+                catch (Exception X)
+                {
+                    //Trace the error but don't break the proccess or delete the message.
+                    //dequeue control is running too.
+                    Trace.TraceError(string.Format("[{0}] Error: {1}", "getWorkflowOperations_" + status.ToString(), X.Message));
+                }
+            }
+
+            
+        }
         public static async Task getWorkflowSuccessOperations(CancellationToken ct, string storageAccountString)
         {
             var pollingInterval = TimeSpan.FromSeconds(Configuration.SuccessQueuePollingInterval);
@@ -127,32 +209,7 @@ namespace MediaButler.Watcher
                 while (!ct.IsCancellationRequested)
                 {
                     // Wake up and do some background processing if not canceled.      
-
-                    Trace.TraceInformation("reading from workflow success results queue");
-                    CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountString);
-                    CloudQueueClient successQueueClient = account.CreateCloudQueueClient();
-                    CloudQueue successQueue = successQueueClient.GetQueueReference(Configuration.ButlerSuccessQueue);
-                    successQueue.CreateIfNotExists();
-                    CloudQueueMessage retrievedMessage = successQueue.GetMessage();
-                    if (retrievedMessage != null)
-                    {
-                        try
-                        {
-                            ButlerResponse messageResponse = JsonConvert.DeserializeObject<ButlerResponse>(retrievedMessage.AsString);
-                            Configuration.WorkflowStatus messageStatus = Configuration.WorkflowStatus.Finished;
-                            processFilesFromResponse(messageResponse, messageStatus, account);
-                        }
-                        catch (Exception X)
-                        {
-                            Trace.TraceError(string.Format("[{0}] Error: ", "getWorkflowSuccessOperations",X.Message));
-                            throw;
-                        }
-                        // TODO: updateQueuemessage if it is taking longer
-                        //Process the message in less than 30 seconds, and then delete the message
-                        successQueue.DeleteMessage(retrievedMessage);
-
-                    }
-
+                    processMessageBack(storageAccountString, Configuration.ButlerSuccessQueue, Configuration.WorkflowStatus.Finished);
                     // Go back to sleep for a period of time unless asked to cancel.      
                     // Task.Delay will throw an OperationCanceledException when canceled.      
                     await Task.Delay(pollingInterval, ct);
@@ -184,35 +241,7 @@ namespace MediaButler.Watcher
                 while (!ct.IsCancellationRequested)
                 {
                     // Wake up and do some background processing if not canceled.      
-                    // TODO: Add reading from failed queue
-                    Trace.TraceInformation("reading from workflow failed results queue");
-                    CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountString);
-                    CloudQueueClient failedQueueClient = account.CreateCloudQueueClient();
-                    CloudQueue failedQueue = failedQueueClient.GetQueueReference(Configuration.ButlerFailedQueue);
-                    failedQueue.CreateIfNotExists();
-                    CloudQueueMessage retrievedMessage = failedQueue.GetMessage();
-                    if (retrievedMessage != null)
-                    {
-                        try
-                        {
-                            ButlerResponse messageResponse = JsonConvert.DeserializeObject<ButlerResponse>(retrievedMessage.AsString);
-                            Configuration.WorkflowStatus messageStatus = Configuration.WorkflowStatus.Failed;
-                            processFilesFromResponse(messageResponse, messageStatus, account);
-                        }
-                        catch (Exception)
-                        {
-
-                            throw;
-                        }
-                        finally 
-                        {
-                            // TODO: updateQueuemessage if it is taking longer
-                            //Process the message in less than 30 seconds, and then delete the message
-                            failedQueue.DeleteMessage(retrievedMessage);
-                        }
-
-                    }
-
+                    processMessageBack(storageAccountString, Configuration.ButlerFailedQueue, Configuration.WorkflowStatus.Failed);
                     // Go back to sleep for a period of time unless asked to cancel.      
                     // Task.Delay will throw an OperationCanceledException when canceled.      
                     await Task.Delay(pollingInterval, ct);
@@ -266,7 +295,6 @@ namespace MediaButler.Watcher
             }
             catch (Exception)
             {
-                
                 throw;
             }
             
