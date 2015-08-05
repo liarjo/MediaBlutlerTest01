@@ -88,8 +88,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\CreateSasLocatorStep.cs" />
-    <Compile Include="Base\MediaHelper.cs" />
+    <Compile Include="Base\DeleteOriginalBlobStep.cs" />
     <Compile Include="Base\SetupAMSAccountStep.cs" />
+    <Compile Include="PremiunEncoder\PremiunConfig.cs" />
+    <Compile Include="PremiunEncoder\PremiunEncoderStep.cs" />
     <Compile Include="Protection\EnableAESEncryptionStep.cs" />
     <Compile Include="Base\PackageMultiMp4ToSmooth.cs" />
     <Compile Include="Base\UpdateAlternateIDStep.cs" />

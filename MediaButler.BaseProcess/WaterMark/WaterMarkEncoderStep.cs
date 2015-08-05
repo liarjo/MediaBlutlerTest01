@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common.ResourceAccess;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Collections.Generic;
@@ -33,8 +34,9 @@ namespace MediaButler.BaseProcess
         }
         private void SetPrimaryAssetFile()
         {
+            IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             IAssetFile mp4 = myAssetOriginal.AssetFiles.Where(f => f.Name.ToLower().EndsWith(".mp4")).FirstOrDefault();
-            MediaButler.BaseProcess.MediaHelper.SetPrimaryFile(myAssetOriginal, mp4);
+            myEncodigSupport.SetPrimaryFile(myAssetOriginal, mp4);
         }
         private void StateChanged(object sender, JobStateChangedEventArgs e)
         {
@@ -47,6 +49,7 @@ namespace MediaButler.BaseProcess
         }
         private IAsset WaterMArkJob()
         {
+            IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             string xmlEncodeProfile;
             if (!string.IsNullOrEmpty(this.StepConfiguration))
             {
@@ -62,9 +65,10 @@ namespace MediaButler.BaseProcess
             IJob  currentJob = _MediaServicesContext.Jobs.Create("Watermak Video base on " + xmlEncodeProfile + " " + myAssetOriginal.Name);
             // Set up the first Task to convert from MP4 to Smooth Streaming. 
             // Read in task configuration XML
-            string myEncoderProfile = MediaButler.BaseProcess.MediaHelper.LoadEncodeProfile(xmlEncodeProfile,myRequest.ProcessConfigConn);
+            string myEncoderProfile = myEncodigSupport.LoadEncodeProfile(xmlEncodeProfile, myRequest.ProcessConfigConn);
             // Get a media packager reference
-            IMediaProcessor processor = MediaButler.BaseProcess.MediaHelper.GetLatestMediaProcessorByName("Windows Azure Media Encoder",_MediaServicesContext);
+            //IMediaProcessor processor = MediaButler.BaseProcess.MediaHelper.GetLatestMediaProcessorByName("Windows Azure Media Encoder",_MediaServicesContext);
+            IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Windows Azure Media Encoder");
             // Create a task with the conversion details, using the configuration data
             ITask task = currentJob.Tasks.AddNew("Task profile " + xmlEncodeProfile,processor,myEncoderProfile, TaskOptions.None);
             // Specify the input asset to be converted.
@@ -80,7 +84,7 @@ namespace MediaButler.BaseProcess
             Task progressJobTask = currentJob.GetExecutionProgressTask(CancellationToken.None);
             //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
             //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
-            MediaButler.BaseProcess.MediaHelper.WaitJobFinish(currentJob.Id,_MediaServicesContext);
+            myEncodigSupport.WaitJobFinish(currentJob.Id);
             return currentJob.OutputMediaAssets.FirstOrDefault();
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)

@@ -17,10 +17,18 @@ namespace MediaButler.BaseProcess
         {
              myRequest = (ButlerProcessRequest)request;
             _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-            //Get transcode asset
+
+            ////Get transcode asset
+            //Lista all media parent from current Asset
             IAsset myAsset = (from m in _MediaServiceContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-            //Delete Parent asset
-            myAsset.ParentAssets.FirstOrDefault().Delete();
+            foreach (IAsset xParent in myAsset.ParentAssets)
+            {
+                if (xParent.Name.Contains(myRequest.ProcessInstanceId))
+                {
+                    //Delete parent asset becouse it is part of the Media blutler process instance
+                    xParent.Delete();
+                }
+            }
 
           }
 

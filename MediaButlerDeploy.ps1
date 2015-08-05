@@ -21,7 +21,7 @@ $serviceLocation="[your Cloud Service and Media Services Region]"
 #Media Butler Cloud Services Slot
 $slot="Production"
 #Media Butler Package URL
-$package_url="https://mediabutler.blob.core.windows.net/apppublish/20150610%2FMediaButler.AllinOne.cspkg?sr=b&sv=2014-02-14&st=2015-06-10T17%3A57%3A23Z&se=2019-06-10T18%3A57%3A00Z&sp=r&sig=L3CYRCubDBup3n0NqxYhAFTnwrEFwoFcwx0MI1qtWFk%3D"
+$package_url="https://mediabutler.blob.core.windows.net/apppublish/20150805%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-08-05T20%3A25%3A13Z&se=2016-08-05T21%3A25%3A00Z&sp=r&sig=HURcwxiDJAT6iyqfYXFRKjGIiwV2i0nrFD6uX6IVXB0%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
 

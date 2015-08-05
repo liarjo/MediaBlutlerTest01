@@ -151,11 +151,23 @@ namespace MediaButler.Workflow
                 {
                     //we have process info
                     var status=(MediaButler.Common.workflow.ProcessSnapShot)retrievedResult.Result;
-                    var request = Newtonsoft.Json.JsonConvert.DeserializeObject<MediaButler.Common.workflow.ChainRequest>(status.jsonContext);
-                    foreach (var error in request.Exceptions)
+                    try
                     {
-                        myButlerResponse.Log += "\r\n" + error.Message; 
+                        var request = Newtonsoft.Json.JsonConvert.DeserializeObject<MediaButler.Common.workflow.ChainRequest>(status.jsonContext);
+                        foreach (var error in request.Exceptions)
+                        {
+                            myButlerResponse.Log += "\r\n" + error.Message;
+                        }
                     }
+                    catch (Exception X)
+                    {
+                        Trace.TraceWarning("Unable to load Error LOG in response.log on poison message");
+                        myButlerResponse.Log += "\r\n" + X.Message;
+                        myButlerResponse.Log += "\r\n" + status.jsonContext;
+                        
+                    }
+                    
+                    
                     //Delete register from Status table
                     TableOperation insertOperation = TableOperation.Delete(status);
                     table.Execute(insertOperation);

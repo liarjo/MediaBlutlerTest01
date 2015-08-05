@@ -89,6 +89,11 @@
     <Compile Include="ButlerResponse.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceAccess\BlobManagerFactory.cs" />
+    <Compile Include="ResourceAccess\BlobStorageManager.cs" />
+    <Compile Include="ResourceAccess\EncoderSupport.cs" />
+    <Compile Include="ResourceAccess\IBlobStorageManager.cs" />
+    <Compile Include="ResourceAccess\IEncoderSupport.cs" />
     <Compile Include="workflow\ChainRequest.cs" />
     <Compile Include="workflow\ProcessHandler.cs" />
     <Compile Include="workflow\ProcessSnapShot.cs" />

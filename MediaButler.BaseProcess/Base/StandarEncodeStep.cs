@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common.ResourceAccess;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
@@ -18,104 +19,8 @@ namespace MediaButler.BaseProcess
         private ButlerProcessRequest myRequest;
         private CloudMediaContext _MediaServicesContext;
         private IAsset myAssetOriginal;
-        private string PreviousJobState;
+
         private IJob currentJob;
-        private  IMediaProcessor GetLatestMediaProcessorByName(string mediaProcessorName)
-        {
-            // The possible strings that can be passed into the 
-            // method for the mediaProcessor parameter:
-            // Azure Media Encoder
-            // Windows Azure Media Packager
-            // Windows Azure Media Encryptor
-            // Azure Media Indexer
-            // Storage Decryption
-
-            var processor = _MediaServicesContext.MediaProcessors.Where(p => p.Name == mediaProcessorName).
-                ToList().OrderBy(p => new Version(p.Version)).LastOrDefault();
-
-            if (processor == null)
-                throw new ArgumentException(string.Format("Unknown media processor {0}", mediaProcessorName));
-
-            return processor;
-        }
-        private void StateChanged(object sender, JobStateChangedEventArgs e)
-        {
-            IJob job = (IJob)sender;
-
-            if (PreviousJobState != e.CurrentState.ToString())
-            {
-                PreviousJobState = e.CurrentState.ToString();
-                Trace.TraceInformation("Job {0} state Changed from {1} to {2}", job.Id, e.PreviousState, e.CurrentState);
-
-            }
-            switch (e.CurrentState)
-            {
-                case JobState.Finished:
-                    //if (OnJobFinish != null)
-                    //{
-                    //    OnJobFinish(this, job);
-                    //}
-                    break;
-                //case JobState.Canceling:
-                //case JobState.Queued:
-                //case JobState.Scheduled:
-                //case JobState.Processing:
-                //    //Trace.TraceInformation("Please wait Job {0} Finish", job.Id);
-                //    break;
-                case JobState.Canceled:
-                    //if (OnJobCancel != null)
-                    //{
-                    //    OnJobCancel(this, job);
-                    //}
-                    break;
-                case JobState.Error:
-                    //if (OnJobError != null)
-                    //{
-                    //    OnJobError(this, job);
-                    //}
-                    break;
-                default:
-                    break;
-            }
-        }
-        private IJob GetJob(string jobId)
-        {
-            // Use a Linq select query to get an updated 
-            // reference by Id. 
-            var jobInstance =
-                from j in _MediaServicesContext.Jobs
-                where j.Id == jobId
-                select j;
-            // Return the job reference as an Ijob. 
-            IJob job = jobInstance.FirstOrDefault();
-            return job;
-        }
-        private void WaitJobFinish(string jobId)
-        {
-            IJob myJob = GetJob(jobId);
-            //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
-            double avance = 0;
-            //TODO: imporve wating method
-            while ((myJob.State != JobState.Finished) && (myJob.State != JobState.Canceled) && (myJob.State != JobState.Error))
-            {
-                if (myJob.State == JobState.Processing)
-                {
-                    if (avance != (myJob.Tasks[0].Progress / 100))
-                    {
-                        avance = myJob.Tasks[0].Progress / 100;
-                        Trace.TraceInformation("job " + myJob.Id + " Percent complete:" + avance.ToString("#0.##%"));
-                    }
-                }
-
-                Thread.Sleep(TimeSpan.FromSeconds(10));
-                myJob.Refresh();
-            }
-            //TODO: test this kind of error
-            if (myJob.State == JobState.Error)
-            {
-                throw new Exception(string.Format("Error JOB {0}", myJob.Id));
-            }
-        }
         /// <summary>
         /// Load encoding profile from local disk or Blob Storage (mediabultlerbin container)
         /// </summary>
@@ -161,6 +66,8 @@ namespace MediaButler.BaseProcess
         }
         private  void  ConvertMP4toSmooth(IAsset assetToConvert)
         {
+            //0 Helper
+            IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
 
             string xmlEncodeProfile = "H264 Adaptive Bitrate MP4 Set 1080p.xml";
             //if (this.StepConfiguration != null)
@@ -182,7 +89,8 @@ namespace MediaButler.BaseProcess
             string configMp4ToSmooth = LoadEncodeProfile(xmlEncodeProfile);
             
             // Get a media packager reference
-            IMediaProcessor processor = GetLatestMediaProcessorByName("Windows Azure Media Encoder");
+            //IMediaProcessor processor = GetLatestMediaProcessorByName("Windows Azure Media Encoder");
+            IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Windows Azure Media Encoder");
             
             // Create a task with the conversion details, using the configuration data
             ITask task = currentJob.Tasks.AddNew("Task profile " + xmlEncodeProfile,
@@ -195,7 +103,8 @@ namespace MediaButler.BaseProcess
             task.OutputAssets.AddNew(assetToConvert.Name+"_mb", AssetCreationOptions.None);
             // Use the following event handler to check job progress. 
             // The StateChange method is the same as the one in the previous sample
-            currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
+            //currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
+            currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
             // Launch the job.
             currentJob.Submit();
             //9. Revisa el estado de ejecución del JOB 
@@ -203,7 +112,7 @@ namespace MediaButler.BaseProcess
 
             //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
             //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
-            this.WaitJobFinish(currentJob.Id);
+            myEncodigSupport.WaitJobFinish(currentJob.Id);
             
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)

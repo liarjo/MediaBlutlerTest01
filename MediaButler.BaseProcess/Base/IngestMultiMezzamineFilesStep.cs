@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MediaButler.BaseProcess
 {
@@ -21,8 +22,34 @@ namespace MediaButler.BaseProcess
         /// <returns></returns>
         private IAsset CreateAsset()
         {
-            //TODO:custome assetName from .control
-            Uri MezzamineFileUri = new Uri(myRequest.ButlerRequest.MezzanineFiles.Where(af=>af.EndsWith(".mp4",StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            //If control file exist, this will be namre  of asset
+            // second option first MP4
+            //third option first file in Mezzamine list
+
+            //Uri MezzamineFileUri = new Uri(myRequest.ButlerRequest.MezzanineFiles.Where(af=>af.EndsWith(".mp4",StringComparison.OrdinalIgnoreCase)).FirstOrDefault());
+            Uri MezzamineFileUri;
+            if(!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
+            {
+                //Control file 
+                MezzamineFileUri = new Uri(myRequest.ButlerRequest.ControlFileUri);
+            } 
+            else
+            {
+                
+                string mp4URL = myRequest.ButlerRequest.MezzanineFiles.Where(af => af.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                if (!string.IsNullOrEmpty(mp4URL))
+                {
+                    //MP4
+                    MezzamineFileUri = new Uri(mp4URL);
+                }
+                else
+                {
+                    //first file
+                    MezzamineFileUri = new Uri(myRequest.ButlerRequest.MezzanineFiles.FirstOrDefault());
+                }
+            }
+
+            
             int segmentscount = MezzamineFileUri.Segments.Count()-1;
             string AssetName = Uri.UnescapeDataString(MezzamineFileUri.Segments[segmentscount]);
 
@@ -106,7 +133,11 @@ namespace MediaButler.BaseProcess
                 
                 assetBlob.FetchAttributes();
                 //Add the xFile to Asset
-                var assetFile = currentAsset.AssetFiles.Create(assetBlob.Name);
+                var assetFile = currentAsset.AssetFiles.Create(AssetBlobName);
+                MezzamineBlob.FetchAttributes();
+                assetFile.ContentFileSize = MezzamineBlob.Properties.Length;
+                assetFile.Update();
+
                 Trace.TraceInformation("{0} in process {1} processId {2} finish MezzamineFile {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, MezzamineBlobName);
                 
             }
