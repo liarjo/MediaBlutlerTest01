@@ -1,10 +1,4 @@
-<head>
-    <style type="text/css">
-        .auto-style1 {
-            text-decoration: underline;
-        }
-    </style>
-</head>
+
 <h1>Media Butler Sample Clipping</h1>
 <h2>&nbsp;Introduction</h2>
 &nbsp;Media Butler implement Clipping using dynamic filter, it is mean you can define video filter definition base on time. For example if you want to see the video for 0 to 10 second you can define a filter for that and use in the video URL as a parameter to apply the filter to the video. For example, if you defined a filter name <strong>winepart2</strong> in a <strong>myvideo</strong> asset, you can use this URL to access to the filter asset.
@@ -57,9 +51,8 @@ The configuration step for this process are:
     <li>Reboot <strong>MediaButler.Watcher</strong> instance, to take the new container to scan configuration </li>
 </ol>
 
-<h3>
-    Process configuration sample</h3>
-    <pre>
+<h3>    Process configuration sample</h3>
+<pre>
 [
     {
         "AssemblyName": "MediaButler.BaseProcess.dll",
