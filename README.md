@@ -70,7 +70,9 @@ Execute the script, and that is!
 
   <h3>More information</h3>
 
-  1. <a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/README.md">Intoduction to Azure Media Butler Framework</a>
-  2. <a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/HowToDeploy.md">How to Deploy</a>
-  3. <a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/SampleClipping.md">Clipping Sample</a>
-
+<ol>
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/README.md">Intoduction to Azure Media Butler Framework</a></li>
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/HowToDeploy.md">How to Deploy</a></li>
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/SampleClipping.md">Clipping Sample</a></li>
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/PremiunEncoder.md">Automation of Premium Encoding in Azure Media Services with Media Butler</a></li>
+</ol>

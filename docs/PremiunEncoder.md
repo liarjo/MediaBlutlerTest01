@@ -23,4 +23,4 @@ Azure Media Butler Framework can process multiple files in parallel, you only ne
 </p>
 <h2>Related content</h2>
 <li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/README.md">Media Butler Framework repository</a></li>
-<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/HowToDeploy.md">How to deploy</a>/li>	
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/HowToDeploy.md">How to deploy</a></li>
