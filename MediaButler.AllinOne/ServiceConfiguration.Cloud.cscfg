@@ -1,17 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ServiceConfiguration serviceName="MediaButler.AllinOne" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2014-06.2.4">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="MediaButler.AllinOne" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
   <Role name="MediaButler.Workflow">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
-      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=mediabutlerdevstorage;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx" />
     </ConfigurationSettings>
   </Role>
   <Role name="MediaButler.Watcher">
     <Instances count="1" />
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
-      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=butlertest01;AccountKey=xxxxxxxx" />
+      <Setting name="MediaButler.ConfigurationStorageConnectionString" value="DefaultEndpointsProtocol=https;AccountName=mediabutlerdevstorage;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

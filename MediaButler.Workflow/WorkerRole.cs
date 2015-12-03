@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using MediaButler.Workflow.Configuration;
+
 using Microsoft.WindowsAzure.Storage.Queue;
 using MediaButler.Common;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -58,8 +58,8 @@ namespace MediaButler.Workflow
 
             Trace.TraceInformation("MediaButler.Workflow has stopped");
         }
-        private ConfigurationData myConfigData;
-
+    
+        private MediaButler.Common.Host.ConfigurationData myConfigData;
         private CloudQueue InWorkQueue;
         
         private MediaButler.Common.workflow.ProcessHandler myProcessHandler;
@@ -69,7 +69,7 @@ namespace MediaButler.Workflow
         private void Setup()
         {
             string json = MediaButler.Common.Configuration.GetConfigurationValue("roleconfig", this.GetType().FullName, CloudConfigurationManager.GetSetting("MediaButler.ConfigurationStorageConnectionString"));
-            myConfigData = Newtonsoft.Json.JsonConvert.DeserializeObject<ConfigurationData>(json);
+            myConfigData = Newtonsoft.Json.JsonConvert.DeserializeObject<MediaButler.Common.Host.ConfigurationData>(json);
             myConfigData.poisonQueue = MediaButler.Common.Configuration.ButlerFailedQueue;
             myConfigData.inWorkQueueName = MediaButler.Common.Configuration.ButlerSendQueue;
             myConfigData.ProcessConfigConn = RoleEnvironment.GetConfigurationSettingValue("MediaButler.ConfigurationStorageConnectionString");
@@ -187,77 +187,87 @@ namespace MediaButler.Workflow
         }
         private async Task RunAsync(CancellationToken cancellationToken)
         {
-            CloudStorageAccount storageAccount;
-            CloudQueueClient queueClient;
-            CloudQueueMessage currentMessage;
-            //TraceInfo auxiliar
-            string txt;
-            Setup(); 
-            //QUEUE infra
-            storageAccount = CloudStorageAccount.Parse(myConfigData.ProcessConfigConn);
-            queueClient = storageAccount.CreateCloudQueueClient();
-            //Create de Handler process
-            myProcessHandler = new Common.workflow.ProcessHandler(myConfigData.ProcessConfigConn);
-            //Infinite Loop
+            Setup();
+            MediaButler.Common.Host.MediaButlerHost xHost = new Common.Host.MediaButlerHost(myConfigData);
+
+           await  xHost.ExecuteAsync(cancellationToken);
             while (!cancellationToken.IsCancellationRequested)
             {
-                //1. Setup()
-                Setup();
-                //Check if is ON/Pausa
-                if (!myConfigData.IsPaused)
-                {
-                    //2. how many process is running in this instance?
-                    if (myProcessHandler.CurrentProcessRunning < myConfigData.MaxCurrentProcess)
-                    {
-                        //2.1 Execute new
-                        //3. Peek Message
-                        currentMessage = GetNewMessage(queueClient);
-                        if (currentMessage != null)
-                        {
-                            //We have a new message
-                            txt = string.Format("[{0}] has a new message, messageId {1}", this.GetType().FullName, currentMessage.Id);
-                            Trace.TraceInformation(txt);
-                            //3.1 Check if is a posion Message
-                            if (!CheckPoison(currentMessage))
-                            {
-                                //4. Good Message
-                                //4.1 Start process, fire and Forgot
-                                txt = string.Format("[{0}] Starting New Process, MessageID {1}", this.GetType().FullName, currentMessage.Id);
-                                Trace.TraceInformation(txt);
-                                myProcessHandler.Execute(currentMessage);
-                            }
-                            else
-                            {
-                                //Send dedletter message
-                                txt = string.Format("[{0}] has a new  Poison message, messageId {1}", this.GetType().FullName, currentMessage.Id);
-                                Trace.TraceWarning(txt);
-                                if (SendPoisonMessage(currentMessage))
-                                {
-                                    InWorkQueue.DeleteMessage(currentMessage);
-                                    txt = string.Format("[{0}] Deleted Poison message, messageId {1}", this.GetType().FullName, currentMessage.Id);
-                                    Trace.TraceWarning(txt);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            txt = string.Format("[{0}] has not a new message. # current process {1}", this.GetType().FullName, myProcessHandler.CurrentProcessRunning);
-                            Trace.TraceInformation(txt);
-                        }
-                    }
-                    else
-                    {
-                        txt = string.Format("[{0}] Max number of process in parallel ({1} current {2})", this.GetType().FullName, myConfigData.MaxCurrentProcess, myProcessHandler.CurrentProcessRunning);
-                        Trace.TraceInformation(txt);
-                    }
-                }
-                else
-                {
-                    Trace.TraceInformation("[{0}] Workflow Manager is paused.", this.GetType().FullName);
-                }
-                
-                await Task.Delay(1000* myConfigData.SleepDelay);
+                await Task.Delay(1000 * myConfigData.SleepDelay);
             }
+
+                //    
+                //    CloudStorageAccount storageAccount;
+                //    CloudQueueClient queueClient;
+                //    CloudQueueMessage currentMessage;
+                //    //TraceInfo auxiliar
+                //    string txt;
+                //    Setup(); 
+                //    //QUEUE infra
+                //    storageAccount = CloudStorageAccount.Parse(myConfigData.ProcessConfigConn);
+                //    queueClient = storageAccount.CreateCloudQueueClient();
+                //    //Create de Handler process
+                //    myProcessHandler = new Common.workflow.ProcessHandler(myConfigData.ProcessConfigConn);
+                //    //Infinite Loop
+                //    while (!cancellationToken.IsCancellationRequested)
+                //    {
+                //        //1. Setup()
+                //        Setup();
+                //        //Check if is ON/Pausa
+                //        if (!myConfigData.IsPaused)
+                //        {
+                //            //2. how many process is running in this instance?
+                //            if (myProcessHandler.CurrentProcessRunning < myConfigData.MaxCurrentProcess)
+                //            {
+                //                //2.1 Execute new
+                //                //3. Peek Message
+                //                currentMessage = GetNewMessage(queueClient);
+                //                if (currentMessage != null)
+                //                {
+                //                    //We have a new message
+                //                    txt = string.Format("[{0}] has a new message, messageId {1}", this.GetType().FullName, currentMessage.Id);
+                //                    Trace.TraceInformation(txt);
+                //                    //3.1 Check if is a posion Message
+                //                    if (!CheckPoison(currentMessage))
+                //                    {
+                //                        //4. Good Message
+                //                        //4.1 Start process, fire and Forgot
+                //                        txt = string.Format("[{0}] Starting New Process, MessageID {1}", this.GetType().FullName, currentMessage.Id);
+                //                        Trace.TraceInformation(txt);
+                //                        myProcessHandler.Execute(currentMessage);
+                //                    }
+                //                    else
+                //                    {
+                //                        //Send dedletter message
+                //                        txt = string.Format("[{0}] has a new  Poison message, messageId {1}", this.GetType().FullName, currentMessage.Id);
+                //                        Trace.TraceWarning(txt);
+                //                        if (SendPoisonMessage(currentMessage))
+                //                        {
+                //                            InWorkQueue.DeleteMessage(currentMessage);
+                //                            txt = string.Format("[{0}] Deleted Poison message, messageId {1}", this.GetType().FullName, currentMessage.Id);
+                //                            Trace.TraceWarning(txt);
+                //                        }
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    txt = string.Format("[{0}] has not a new message. # current process {1}", this.GetType().FullName, myProcessHandler.CurrentProcessRunning);
+                //                    Trace.TraceInformation(txt);
+                //                }
+                //            }
+                //            else
+                //            {
+                //                txt = string.Format("[{0}] Max number of process in parallel ({1} current {2})", this.GetType().FullName, myConfigData.MaxCurrentProcess, myProcessHandler.CurrentProcessRunning);
+                //                Trace.TraceInformation(txt);
+                //            }
+                //        }
+                //        else
+                //        {
+                //            Trace.TraceInformation("[{0}] Workflow Manager is paused.", this.GetType().FullName);
+                //        }
+
+                //        await Task.Delay(1000* myConfigData.SleepDelay);
+                //    }
         }
     }
 }

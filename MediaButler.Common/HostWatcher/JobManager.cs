@@ -1,21 +1,16 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
-using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using MediaButler.Common;
 
-namespace MediaButler.Watcher
+namespace MediaButler.Common.HostWatcher
 {
     public static partial class JobManager
     {
@@ -58,11 +53,12 @@ namespace MediaButler.Watcher
         /// </summary>
         /// <param name="j">Job to submit</param>
         /// <returns>the Guid of the JOB if submission was successful</returns>
-        public static Guid Submit(ButlerJob j)
-        {
-            string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
-            return Submit(j, storageAccountString);
-        }
+        //public static Guid Submit(ButlerJob j)
+        //{
+        //    //string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
+        //    //string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
+        //    return Submit(j, storageAccountString);
+        //}
         /// <summary>
         /// Submit this job to the Butler Request queue
         /// </summary>
@@ -85,7 +81,7 @@ namespace MediaButler.Watcher
                     WorkflowName = "",
                     TimeStampUTC = String.Format("{0:o}", DateTime.Now.ToUniversalTime()),
                     ControlFileUri = ""
-                    };
+                };
                 if (j.JobMediaFiles.Count > 0)
                 {
                     var blob = new CloudBlockBlob(j.JobMediaFiles[0]);
@@ -113,11 +109,11 @@ namespace MediaButler.Watcher
             return j.JobId;
         }
 
-        public static async Task getWorkflowSuccessOperations(CancellationToken ct)
-        {
-            string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
-            await getWorkflowSuccessOperations(ct, storageAccountString);
-        }
+        //public static async Task getWorkflowSuccessOperations(CancellationToken ct)
+        //{
+        //    string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
+        //    await getWorkflowSuccessOperations(ct, storageAccountString);
+        //}
         private static ButlerResponse DeserializeRsponseMessage(string txtMsg)
         {
             ButlerResponse messageResponse = null;
@@ -127,8 +123,8 @@ namespace MediaButler.Watcher
             }
             catch (Exception)
             {
-                
-               
+
+
             }
 
             return messageResponse;
@@ -152,10 +148,10 @@ namespace MediaButler.Watcher
         /// <param name="storageAccountString">Storage account</param>
         /// <param name="queueName">Queue Name</param>
         /// <param name="status">Workflow status</param>
-        private static void processMessageBack(string storageAccountString, string queueName,  Configuration.WorkflowStatus status)
+        private static void processMessageBack(string storageAccountString, string queueName, Configuration.WorkflowStatus status)
         {
             string erroMsg;
-            Trace.TraceInformation("reading from workflow results queue: " + status.ToString());
+            //Trace.TraceInformation("reading from workflow results queue: " + status.ToString());
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageAccountString);
             CloudQueueClient inQueueClient = storageAccount.CreateCloudQueueClient();
             CloudQueue inQueue = inQueueClient.GetQueueReference(queueName);
@@ -199,7 +195,7 @@ namespace MediaButler.Watcher
                 }
             }
 
-            
+
         }
         public static async Task getWorkflowSuccessOperations(CancellationToken ct, string storageAccountString)
         {
@@ -227,11 +223,11 @@ namespace MediaButler.Watcher
             }
         }
 
-        public static async Task getWorkflowFailedOperations(CancellationToken ct) 
-        { 
-            string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
-            await getWorkflowFailedOperations(ct, storageAccountString);
-        }
+        //public static async Task getWorkflowFailedOperations(CancellationToken ct)
+        //{
+        //    string storageAccountString = CloudConfigurationManager.GetSetting(Configuration.ButlerStorageConnectionConfigurationKey);
+        //    await getWorkflowFailedOperations(ct, storageAccountString);
+        //}
         public static async Task getWorkflowFailedOperations(CancellationToken ct, string storageAccountString)
         {
             ButlerJob job = new ButlerJob();
@@ -264,8 +260,8 @@ namespace MediaButler.Watcher
             bool returnValue = true;
             CloudBlockBlob baseBlob = new CloudBlockBlob(new Uri(jobResponse.MezzanineFiles[0]), account.Credentials);
             CloudBlobContainer container = baseBlob.Container;
-            string directoryTo = (jobStatus == Configuration.WorkflowStatus.Failed) ? Configuration.DirectoryFailed:Configuration.DirectoryCompleted;
-            string timestampFileAppend = (string.IsNullOrEmpty(jobResponse.TimeStampProcessingStarted)) ? "":jobResponse.TimeStampProcessingStarted.Replace(':','-');
+            string directoryTo = (jobStatus == Configuration.WorkflowStatus.Failed) ? Configuration.DirectoryFailed : Configuration.DirectoryCompleted;
+            string timestampFileAppend = (string.IsNullOrEmpty(jobResponse.TimeStampProcessingStarted)) ? "" : jobResponse.TimeStampProcessingStarted.Replace(':', '-');
             // fix: substitute / with - in date to avoid file being treated as series of dirs
             timestampFileAppend = timestampFileAppend.Replace('/', '-');
             try
@@ -297,7 +293,7 @@ namespace MediaButler.Watcher
             {
                 throw;
             }
-            
+
 
             return returnValue;
         }

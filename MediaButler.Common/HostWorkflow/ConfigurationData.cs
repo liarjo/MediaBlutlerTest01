@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MediaButler.Workflow.Configuration
+namespace MediaButler.Common.Host
 {
-    class ConfigurationData
+    public class ConfigurationData
     {
         public int MaxCurrentProcess { get; set; }
         /// <summary>

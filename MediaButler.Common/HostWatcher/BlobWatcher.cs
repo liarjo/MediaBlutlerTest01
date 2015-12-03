@@ -1,24 +1,18 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
-using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using MediaButler.Common;
 
-namespace MediaButler.Watcher
+namespace MediaButler.Common.HostWatcher
 {
     public static partial class BlobWatcher
     {
+        private static string _storageAccountString;
         // Note: Directory naming conventions (e.g., using /Incoming for new jobs)
         // is specified by constants in the configuration class.
 
@@ -33,7 +27,7 @@ namespace MediaButler.Watcher
             //var blobList = cbc.ListBlobs(Configuration.DirectoryInbound);
 
             var blobList = cbc.ListBlobs(Configuration.DirectoryInbound, true);
- 
+
             // Keep track of files per jobID
             var filesByJobID = new Dictionary<Guid, List<IListBlobItem>>(23);
 
@@ -54,21 +48,24 @@ namespace MediaButler.Watcher
                     Trace.TraceInformation(String.Format("Submitting job: {0} at {1:o} (Simple)", j.JobId, DateTime.UtcNow));
 
                     // 3. submit the job
-                    JobManager.Submit(j);
+                    //JobManager.Submit(j);
+                    JobManager.Submit(j,_storageAccountString);
                 }
-                else {
+                else
+                {
                     // it's one of the files for a specific job, so collect them for now
-                    
+
                     // 1. extract GUID
                     var parts = b.Uri.ToString().Split('/');
                     var guidStr = parts[parts.Length - 2];
                     var jobID = new Guid(guidStr);
 
-                    if (!filesByJobID.ContainsKey(jobID)) {
+                    if (!filesByJobID.ContainsKey(jobID))
+                    {
                         filesByJobID.Add(jobID, new List<IListBlobItem>(10));
                     }
                     filesByJobID[jobID].Add(b);
-                }  
+                }
             }
 
             // All simple files have been submitted and all complex jobs have had their
@@ -120,7 +117,7 @@ namespace MediaButler.Watcher
                 bool copyWorked = RenameBlobsWithinContainer(cbc, sourcePaths, destPaths);
 
                 // files copied, now build up the job data...
-                foreach(var path in destPaths)
+                foreach (var path in destPaths)
                 {
                     var bbref = cbc.GetBlockBlobReference(path);
                     var targetUri = bbref.Uri;
@@ -138,8 +135,9 @@ namespace MediaButler.Watcher
                 // Create & Submit the job for processing
                 var job = JobManager.CreateJob(jobMediaFiles, jobControl);
 
-                Trace.TraceInformation(String.Format("Submitting job: {0} at {1:o}",job.JobId, DateTime.UtcNow));
-                JobManager.Submit(job);                     
+                Trace.TraceInformation(String.Format("Submitting job: {0} at {1:o}", job.JobId, DateTime.UtcNow));
+                // JobManager.Submit(job);
+                JobManager.Submit(job,_storageAccountString);
             }
         }
 
@@ -306,12 +304,12 @@ namespace MediaButler.Watcher
             //TODO: block is okay since WAMS only supports block
 
             System.Diagnostics.Debug.Assert(sourcePath.Count == targetPath.Count);
-            
+
             int count = sourcePath.Count;
             var sourceList = new List<CloudBlockBlob>(count);
             var monitorList = new List<CloudBlockBlob>(count);
             var doneList = new CopyStatus[count];
- 
+
             // Start the list of blobs copying
             for (int i = 0; i < sourcePath.Count; i++)
             {
@@ -361,16 +359,20 @@ namespace MediaButler.Watcher
 
             // if all were successful, return true, else false
             bool AllSuccessful = true;
-            foreach(var cs in doneList) {
-                if (cs != CopyStatus.Success) {
+            foreach (var cs in doneList)
+            {
+                if (cs != CopyStatus.Success)
+                {
                     AllSuccessful = false;
                     break;
                 }
             }
 
             // Delete all of the source blobs if the copies worked.
-            if (AllSuccessful) {
-                foreach(var blob in sourceList) {
+            if (AllSuccessful)
+            {
+                foreach (var blob in sourceList)
+                {
                     try
                     {
                         Trace.TraceInformation("Deleting source blob: {0}", blob.Name);
@@ -395,7 +397,8 @@ namespace MediaButler.Watcher
         /// <returns></returns>
         public static async Task runInboundJobWatcher(CancellationToken ct, string storageAccountString, string[] ContainersToScan)
         {
-        //    var pollingInterval = TimeSpan.FromSeconds(60);
+            _storageAccountString = storageAccountString;
+            //    var pollingInterval = TimeSpan.FromSeconds(60);
 
             int msBetweenPolls = 1000 * Configuration.BlobWatcherPollingInterval;
             // Run the mainline for BlobWatcher
