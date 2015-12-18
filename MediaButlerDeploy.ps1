@@ -12,16 +12,26 @@ $MediaStorageConn="[your Storage Account connection string]"
 #[Optional] Send Grid configuration, if you don't use Sendgrig keep empty string
 #Example "{ ""UserName"":""xxxxxxxxxxx@azure.com"", ""Pswd"":""xxxxxxxxxxx"", ""To"":""admin@yourdomain.com"", ""FromName"": ""Butler Media Framework"", ""FromMail"": ""butler@media.com"" }"
 $SendGridStepConfig=""
+
+#Host options: 1- Cloud Services / 2.- WebJob
+$HostOption=0
+
+#If you use Cloud Service fill this varaibles
 #Media Butler Cloud Services Name
 $serviceName="[you Cloud Service Name here]"
 #Media Butler Cloud Services Location
 $serviceLocation="[your Cloud Service and Media Services Region]"
 
+
+#If you use WebJob fill this variables
+#WebSite must exist
+$WebSiteName="[your website name]"
+
 #Constante, not change
 #Media Butler Cloud Services Slot
 $slot="Production"
 #Media Butler Package URL
-$package_url="https://mediabutler.blob.core.windows.net/apppublish/20150805%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-08-05T20%3A25%3A13Z&se=2016-08-05T21%3A25%3A00Z&sp=r&sig=HURcwxiDJAT6iyqfYXFRKjGIiwV2i0nrFD6uX6IVXB0%3D"
+$package_url="https://mediabutler.blob.core.windows.net/apppublish/20151218%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-12-18T20%3A22%3A32Z&se=2019-12-18T21%3A22%3A00Z&sp=r&sig=mtKNKRc8A4WdBFoxul6NHrjq6nwlCmPzaKawYY5g3gg%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
 
@@ -167,8 +177,17 @@ try
 
 
 
-    #7. Deploy Cloud Services
-    DeployBulter -_serviceName $serviceName -_package_url $package_url -_slot $slot -_serviceLocation $serviceLocation -_config_Url $config_Url -_sExternalConnString $sExternalConnString
+    #7.  Deploy Host MediaButler
+    if ($HostOption -eq 1)
+    {
+        #Cloud Services
+        DeployBulter -_serviceName $serviceName -_package_url $package_url -_slot $slot -_serviceLocation $serviceLocation -_config_Url $config_Url -_sExternalConnString $sExternalConnString
+    }
+    if ($HostOption -eq 2)
+    {
+        #Web jobs
+        #New-AzureWebsiteJob -JobName BtulerMediaServices -JobType Continuous -JobFile 'K:\TMP\webjob\Application Files\Debug.zip' -Name $WebSiteName 
+    }
 }
 catch 
 {

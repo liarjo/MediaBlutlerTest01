@@ -21,6 +21,7 @@ namespace MediaButler.BaseProcess
         private IAsset myAssetOriginal;
 
         private IJob currentJob;
+        private IEncoderSupport myEncodigSupport;
         /// <summary>
         /// Load encoding profile from local disk or Blob Storage (mediabultlerbin container)
         /// </summary>
@@ -66,8 +67,7 @@ namespace MediaButler.BaseProcess
         }
         private  void  ConvertMP4toSmooth(IAsset assetToConvert)
         {
-            //0 Helper
-            IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
+            
 
             string xmlEncodeProfile = "H264 Adaptive Bitrate MP4 Set 1080p.xml";
             //if (this.StepConfiguration != null)
@@ -82,8 +82,8 @@ namespace MediaButler.BaseProcess
                 Trace.TraceWarning(txt);
             }
             // Declare a new job to contain the tasks
-            currentJob = _MediaServicesContext.Jobs.Create("Convert to Smooth Streaming job " +  myAssetOriginal.Name);
-
+            //currentJob = _MediaServicesContext.Jobs.Create("Convert to Smooth Streaming job " +  myAssetOriginal.Name);
+            currentJob = _MediaServicesContext.Jobs.Create("Convert to Smooth Streaming job " + myAssetOriginal.Name);
             // Set up the first Task to convert from MP4 to Smooth Streaming. 
             // Read in task configuration XML
             string configMp4ToSmooth = LoadEncodeProfile(xmlEncodeProfile);
@@ -109,24 +109,48 @@ namespace MediaButler.BaseProcess
             currentJob.Submit();
             //9. Revisa el estado de ejecución del JOB 
             Task progressJobTask = currentJob.GetExecutionProgressTask(CancellationToken.None);
-
             //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
             //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
             myEncodigSupport.WaitJobFinish(currentJob.Id);
-            
+
+
+        }
+        private bool IdenpotenceControl()
+        {
+
+           
+            currentJob = myEncodigSupport.GetJobByName("Convert to Smooth Streaming job " + myAssetOriginal.Name);
+
+
+            return (currentJob == null);
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
 
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //0 Helper
+            myEncodigSupport = new EncoderSupport(_MediaServicesContext);
 
             myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-            
-            ConvertMP4toSmooth(myAssetOriginal);
+
+            if (IdenpotenceControl())
+            {
+                ConvertMP4toSmooth(myAssetOriginal);
+                
+                
+
+            }
+            else
+            {
+                //Job Just wait for finish the current job
+                myEncodigSupport.WaitJobFinish(currentJob.Id);
+            }
 
             //Update AssetID
             myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
+            myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
+
         }
         public override void HandleCompensation(Common.workflow.ChainRequest request)
         {

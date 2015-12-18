@@ -1,4 +1,8 @@
-﻿using System;
+﻿using MediaButler.Common;
+using MediaButler.Common.workflow;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +21,29 @@ namespace MediaButler.BaseProcess
              sleepSeconds = 10;
              
         }
+        /// <summary>
+        /// Of the process ID has context on ButlerWorkflowstatus table, it is load on Metadata
+        /// </summary>
+        /// <param name="myRequest"></param>
+        private void ButlerWorkflowstatus(ButlerProcessRequest myRequest)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(myRequest.ProcessConfigConn);
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
+            TableOperation retrieveOperation = TableOperation.Retrieve<ProcessSnapShot>(myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
+            TableResult retrievedResult = table.Execute(retrieveOperation);
+            if (retrievedResult.Result != null)
+            {
+                string txtMessage = string.Format("[{0}] {1} {2} instance {2}", this.GetType().FullName, "On runnung Instance", myRequest.ProcessInstanceId, myRequest.ProcessTypeId);
+                Trace.TraceInformation(txtMessage);
+
+                dynamic dynObj = Newtonsoft.Json.JsonConvert.DeserializeObject(((ProcessSnapShot)retrievedResult.Result).jsonContext);
+                //Dictionary<string, string> dynMetaData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>((dynObj.MetaData.ToString()));
+                myRequest.MetaData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>((dynObj.MetaData.ToString()));
+
+
+            }
+        }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             ButlerProcessRequest myRequest = (ButlerProcessRequest)request;
@@ -30,6 +57,8 @@ namespace MediaButler.BaseProcess
                     myRequest.ProcessTypeId, 
                     myRequest.ProcessInstanceId,
                     myRequest.ButlerRequest.MessageId);
+                //Read if We have information on ButlerWorkflowstatus
+                ButlerWorkflowstatus(myRequest);
             } 
                 else
             {

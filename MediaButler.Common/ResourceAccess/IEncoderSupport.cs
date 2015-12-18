@@ -13,6 +13,7 @@ namespace MediaButler.Common.ResourceAccess
         void StateChanged(object sender, JobStateChangedEventArgs e);
         void WaitJobFinish(string jobId);
         IJob GetJob(string jobId);
+        IJob GetJobByName(string JobName);
         IAsset CreateAsset(string AssetName, string blobUrl, string MediaStorageConn, string StorageConnectionString, string WorkflowName);
         string LoadEncodeProfile(string profileInfo, string ProcessConfigConn);
         void SetPrimaryFile(IAsset MyAsset, IAssetFile theAssetFile);

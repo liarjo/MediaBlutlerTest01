@@ -110,7 +110,16 @@ namespace MediaButler.Common.ResourceAccess
             IJob job = jobInstance.FirstOrDefault();
             return job;
         }
-
+        public IJob GetJobByName(string JobName)
+        {
+            var jobInstance =
+                 from j in _MediaServicesContext.Jobs
+                 where j.Name.Contains(JobName)
+                 select j;
+            // Return the job reference as an Ijob. 
+            IJob job = jobInstance.FirstOrDefault();
+            return job;
+        }
         /// <summary>
         /// Create Asset and Add blob
         /// </summary>

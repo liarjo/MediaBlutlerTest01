@@ -1,6 +1,8 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +18,7 @@ namespace MediaButler.BaseProcess
         ButlerProcessRequest myRequest;
         CloudMediaContext MediaContext;
         IAsset currentAsset = null;
+
         /// <summary>
         /// Create empty Asset
         /// </summary>
@@ -147,18 +150,32 @@ namespace MediaButler.BaseProcess
             currentAsset.Update();
 
         }
+        private bool IdenpotenceControl()
+        {
+            
+            return !myRequest.MetaData.ContainsKey(this.GetType() + "_" + myRequest.ProcessInstanceId);
+        }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             //Custome Request
             myRequest = (ButlerProcessRequest)request;
-            //Media context 
-            MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-            //Create empty asset
-            currentAsset=CreateAsset();
-            //Update Asset Id in the process context
-            myRequest.AssetId = currentAsset.Id;
-            //Ingest all Mezzamine File to asset
-            IngestAssets();
+            if (IdenpotenceControl())
+            {
+                //Media context 
+                MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+                //Create empty asset
+                currentAsset = CreateAsset();
+                //Update Asset Id in the process context
+                myRequest.AssetId = currentAsset.Id;
+                //Ingest all Mezzamine File to asset
+                IngestAssets();
+                //mark for idenpotence
+                myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, myRequest.AssetId);
+            }
+            else
+            {
+                myRequest.AssetId = myRequest.MetaData[this.GetType() + "_" + myRequest.ProcessInstanceId];
+            }
         }
 
         public override void HandleCompensation(Common.workflow.ChainRequest request)

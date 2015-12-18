@@ -107,7 +107,7 @@
     <Compile Include="Replica\TriggerReplicaStep.cs" />
     <Compile Include="ButlerProcessRequest.cs" />
     <Compile Include="Base\DeleteOriginalAssetStep.cs" />
-    <Compile Include="Base\MessageHiddeControlStep.cs" />
+    <Compile Include="Control\MessageHiddeControlStep.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Base\CreateStreamingLocatorStep.cs" />
     <Compile Include="Base\IngestMultiMezzamineFilesStep.cs" />

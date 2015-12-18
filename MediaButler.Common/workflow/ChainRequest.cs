@@ -55,7 +55,9 @@ namespace MediaButler.Common.workflow
         {
             this.Log = new List<string>();
             this.TimeStampProcessingStarted = DateTime.Now;
+            MetaData = new Dictionary<string, string>();
         }
-        
+        public Dictionary<string, string>  MetaData { get; set; }
+       
     }
 }

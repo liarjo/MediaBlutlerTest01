@@ -1,11 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaButlerInstall", "MediaButlerInstall", "{34A57BB8-43ED-4FD9-8BFB-F8A9D2ABEBED}"
 	ProjectSection(SolutionItems) = preProject
-		createNewProcess.ps1 = createNewProcess.ps1
 		MediaButlerDeploy.ps1 = MediaButlerDeploy.ps1
 	EndProjectSection
 EndProject
