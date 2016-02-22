@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.MediaServices.Client.DynamicEncryption;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -273,7 +274,47 @@ namespace MediaButler.Common
             }
             else return null;
         }
+        public  string GetJsonAssetFilesInfo()
+        {
+            string aux="";
+            //if (SelectedAssets.Count > 0)
+            //{
+            //    List<dynamic> myAssets = new List<dynamic>();
 
+            //    List<dynamic> myFiles = new List<dynamic>();
+
+            //    foreach (IAsset theAsset in SelectedAssets)
+            //    {
+            //        dynamic assetX = new JObject();
+            //        assetX.Id = theAsset.Id;
+            //        assetX.Uri= theAsset.Uri;
+            //        assetX.AlternateId= theAsset.AlternateId;
+            //        //Assets Files
+            //        List<string> filesX = new List<string>();
+            //        foreach (var assetFile in theAsset.AssetFiles)
+            //        {
+            //            dynamic fileX = new JObject();
+            //            fileX.Name = assetFile.Name;
+            //            fileX.ContentFileSize= assetFile.ContentFileSize;
+            //            fileX.MimeType= assetFile.MimeType;
+            //            filesX.Add(fileX.ToString());
+            //        }
+            //        myFiles.Add(fileX);
+            //        assetX.AssetFiles = Newtonsoft.Json.JsonConvert.SerializeObject(filesX);
+
+            //        myAssets.Add(assetX.ToString());
+            //    }
+                
+            //       aux = Newtonsoft.Json.JsonConvert.SerializeObject(myAssets);
+            //}
+            //else
+            //{
+
+            //}
+
+
+                return aux;
+        }
         public string GetStatJson()
         {
             Hashtable allInfo = new Hashtable();

@@ -1,4 +1,5 @@
 ﻿using MediaButler.Common;
+using MediaButler.Common.ResourceAccess;
 using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -18,7 +19,7 @@ namespace MediaButler.BaseProcess
         ButlerProcessRequest myRequest;
         CloudMediaContext MediaContext;
         IAsset currentAsset = null;
-
+       
         /// <summary>
         /// Create empty Asset
         /// </summary>
@@ -155,6 +156,43 @@ namespace MediaButler.BaseProcess
             
             return !myRequest.MetaData.ContainsKey(this.GetType() + "_" + myRequest.ProcessInstanceId);
         }
+        private void setPrimaryFile()
+        {
+            string myPrimaryFile = null;
+            IAssetFile mp4=null;
+            
+
+            if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
+            {
+                //
+                IBlobStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+                string jsonControl = resource.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+                if (!string.IsNullOrEmpty(jsonControl))
+                {
+                    IjsonKeyValue myControl = new jsonKeyValue(jsonControl);
+                    myPrimaryFile = myControl.Read("myPrimaryFile");
+                }
+            }
+            
+            IEncoderSupport myEncodigSupport = new EncoderSupport(MediaContext);
+            if (!string.IsNullOrEmpty(myPrimaryFile))
+            {
+                mp4 = currentAsset.AssetFiles.Where(f => f.Name.ToLower()==myPrimaryFile.ToLower()).FirstOrDefault();
+                
+            }
+            if (mp4==null)
+           {
+                 mp4 = currentAsset.AssetFiles.Where(f => f.Name.ToLower().EndsWith(".mp4")).FirstOrDefault();
+            }
+            if (mp4 != null)
+            {
+                myEncodigSupport.SetPrimaryFile(currentAsset, mp4);
+            }
+            else
+            {
+                Trace.TraceWarning("{0} setPrimaryFile {2} processId {1}, has not MP4 file", this.GetType().FullName, myRequest.ProcessInstanceId, myRequest.ProcessTypeId);
+            }
+        }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             //Custome Request
@@ -169,6 +207,8 @@ namespace MediaButler.BaseProcess
                 myRequest.AssetId = currentAsset.Id;
                 //Ingest all Mezzamine File to asset
                 IngestAssets();
+                //Set MP4 as primary
+                setPrimaryFile();
                 //mark for idenpotence
                 myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, myRequest.AssetId);
             }
