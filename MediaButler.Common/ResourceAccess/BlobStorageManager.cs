@@ -54,7 +54,8 @@ namespace MediaButler.Common.ResourceAccess
             }
             CloudBlobContainer myContainer = blobClient.GetContainerReference(containerName);
             //json = CloudStorageAccount.Parse(myRequest.ProcessConfigConn).CreateCloudBlobClient().GetContainerReference(myRequest.ProcessTypeId).GetBlockBlobReference(controlFilename).DownloadText();
-            return myContainer.GetBlockBlobReference(blobName).DownloadText();
+            string data = myContainer.GetBlockBlobReference(blobName).DownloadText();
+            return data;
 
         }
     }

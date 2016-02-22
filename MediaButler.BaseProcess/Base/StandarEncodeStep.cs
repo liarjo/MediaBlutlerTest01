@@ -65,37 +65,70 @@ namespace MediaButler.BaseProcess
             }
             return auxProfile;
         }
+        private string[] getEncodeInformation()
+        {
+            IBlobStorageManager blob = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+
+            //default Xml Profile
+            string xmlEncodeProfile = null;
+            string encodeProfileName=null;//
+
+            //First priority Process instance level === .Control as part of the package
+            if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
+            {
+                string jsonData = blob.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+                IjsonKeyValue x = new jsonKeyValue(jsonData);
+                encodeProfileName = x.Read("encodigProfile").ToLower();
+                if (!string.IsNullOrEmpty(encodeProfileName))
+                {
+                    try
+                    {
+                        string xmlURL = myRequest.ButlerRequest.MezzanineFiles.Where(u => u.ToLower().EndsWith(encodeProfileName)).FirstOrDefault();
+                        xmlEncodeProfile = blob.ReadTextBlob(xmlURL);
+                    }
+                    catch (Exception)
+                    {
+                        xmlEncodeProfile = null;
+                        string txt = string.Format("StandarEncodeStep try to read XMl profile from control but it is  {0} ", DateTime.Now.ToString());
+                        Trace.TraceWarning(txt);
+                    }
+
+                }
+            }
+            //Second option is Process Level === Configuration
+            if (xmlEncodeProfile==null)
+            {
+                if (!string.IsNullOrEmpty(this.StepConfiguration))
+                {
+                    encodeProfileName= this.StepConfiguration;
+                }
+                else
+                {
+                    encodeProfileName = "H264 Adaptive Bitrate MP4 Set 1080p.xml";
+                }
+
+                xmlEncodeProfile = LoadEncodeProfile(encodeProfileName);
+            }
+
+            return new string[2] { xmlEncodeProfile, encodeProfileName };
+        }
         private  void  ConvertMP4toSmooth(IAsset assetToConvert)
         {
-            
-
-            string xmlEncodeProfile = "H264 Adaptive Bitrate MP4 Set 1080p.xml";
-            //if (this.StepConfiguration != null)
-            if (!string.IsNullOrEmpty(this.StepConfiguration))
-            {
-                //TODO:support storage and LABEL
-                xmlEncodeProfile = this.StepConfiguration;
-            }
-            else
-            {
-                string txt = string.Format("StandarEncodeStep try to read StepConfiguration but it is not in configuration table! at {0} ",  DateTime.Now.ToString());
-                Trace.TraceWarning(txt);
-            }
             // Declare a new job to contain the tasks
-            //currentJob = _MediaServicesContext.Jobs.Create("Convert to Smooth Streaming job " +  myAssetOriginal.Name);
             currentJob = _MediaServicesContext.Jobs.Create("Convert to Smooth Streaming job " + myAssetOriginal.Name);
             // Set up the first Task to convert from MP4 to Smooth Streaming. 
             // Read in task configuration XML
-            string configMp4ToSmooth = LoadEncodeProfile(xmlEncodeProfile);
-            
+            var encodeData = getEncodeInformation();
+            string EncodingProfileXmlData = encodeData[0];
+            string encodingProfileLabel = encodeData[1];
+
             // Get a media packager reference
-            //IMediaProcessor processor = GetLatestMediaProcessorByName("Windows Azure Media Encoder");
             IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Windows Azure Media Encoder");
             
             // Create a task with the conversion details, using the configuration data
-            ITask task = currentJob.Tasks.AddNew("Task profile " + xmlEncodeProfile,
+            ITask task = currentJob.Tasks.AddNew("Task profile " + encodingProfileLabel,
                    processor,
-                   configMp4ToSmooth,
+                   EncodingProfileXmlData,
                    TaskOptions.None);
             // Specify the input asset to be converted.
             task.InputAssets.Add(assetToConvert);
@@ -112,8 +145,6 @@ namespace MediaButler.BaseProcess
             //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
             //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
             myEncodigSupport.WaitJobFinish(currentJob.Id);
-
-
         }
         private bool IdenpotenceControl()
         {

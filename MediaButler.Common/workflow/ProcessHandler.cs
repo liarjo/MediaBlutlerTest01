@@ -150,6 +150,22 @@ namespace MediaButler.Common.workflow
         {
             myProcessConfigConn = ProcessConfigConn;
         }
+        private string getProcessId(ButlerRequest currentRequest)
+        {
+            string xID = null;
+            if(string.IsNullOrEmpty(currentRequest.ControlFileUri))
+            {
+                xID = currentRequest.MessageId.ToString();
+            }
+            else
+            {
+                //get Blob conatier guid
+                Uri xFile = new Uri(currentRequest.ControlFileUri);
+                string aux = xFile.Segments[3];
+                xID= aux.Substring(0, aux.Length - 1);
+            }
+            return xID;
+        }
         private void execute(CloudQueueMessage currentMessage)
         {
             ProcessRequest myRequest=null;
@@ -165,15 +181,15 @@ namespace MediaButler.Common.workflow
                 myRequest = GetCurrentContext(watcherRequest.WorkflowName);
                 myRequest.CurrentMessage = currentMessage;
                 myRequest.ProcessTypeId = watcherRequest.WorkflowName;
-                myRequest.ProcessInstanceId = watcherRequest.MessageId.ToString();
+                //ProcessInstanceId:
+                //Single File: MessageID Guid (random)
+                //multiFile package: Container folder guid ID (set for client)
+                //myRequest.ProcessInstanceId = watcherRequest.MessageId.ToString();
+                myRequest.ProcessInstanceId = this.getProcessId(watcherRequest);
+
                 myRequest.ProcessConfigConn = this.myProcessConfigConn;
                 myRequest.IsResumeable = (this.ReadConfigOrDefault(myRequest.ProcessTypeId + ".IsResumeable")=="1");
                 //2.Execute Chain
-
-                //lock (myLock)
-                //{
-                //    currentProcessRunning += 1;
-                //}
                 txt = string.Format("[{0}] Starting new Process, type {1} and ID {2}",this.GetType().FullName,myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
                 Trace.TraceInformation(txt);
                 mysteps.FirstOrDefault().HandleRequest(myRequest);
