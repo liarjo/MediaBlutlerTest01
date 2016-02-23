@@ -116,6 +116,7 @@ namespace MediaButler.Common
 
         public const string workflowStepListKey = "workflowStepList";
         public const string workflowStepLength = "workflowStepLength";
+        public const string TranscodingAdvance = "TranscodingAdvance";
 
         public const int maxDequeueCount = 3;
         /// <summary>

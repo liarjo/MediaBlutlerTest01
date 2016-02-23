@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common.workflow;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace MediaButler.Common.ResourceAccess
         IMediaProcessor GetLatestMediaProcessorByName(string mediaProcessorName);
         void StateChanged(object sender, JobStateChangedEventArgs e);
         void WaitJobFinish(string jobId);
+        event EventHandler JobUpdate;
         IJob GetJob(string jobId);
         IJob GetJobByName(string JobName);
         IAsset CreateAsset(string AssetName, string blobUrl, string MediaStorageConn, string StorageConnectionString, string WorkflowName);

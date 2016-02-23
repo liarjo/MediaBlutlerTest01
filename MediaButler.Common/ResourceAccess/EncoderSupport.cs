@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common.workflow;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
@@ -85,8 +86,16 @@ namespace MediaButler.Common.ResourceAccess
                     if (avance != (myJob.Tasks[0].Progress / 100))
                     {
                         avance = myJob.Tasks[0].Progress / 100;
-                        Trace.TraceInformation("job " + myJob.Id + " Percent complete:" + avance.ToString("#0.##%"));
+                        string message = "job " + myJob.Id + " Percent complete:" + avance.ToString("#0.##%");
+                        Trace.TraceInformation(message);
+
+                        if (JobUpdate != null)
+                        {
+
+                            JobUpdate(message, null);
+                        }
                     }
+
                 }
 
                 Thread.Sleep(TimeSpan.FromSeconds(10));
@@ -96,8 +105,13 @@ namespace MediaButler.Common.ResourceAccess
             if (myJob.State == JobState.Error)
             {
                 throw new Exception(string.Format("Error JOB {0}", myJob.Id));
+                
+
             }
         }
+        //public delegate void ChangedEventHandler(object sender, EventArgs e);
+        public event EventHandler JobUpdate;
+
         public IJob GetJob(string jobId)
         {
             // Use a Linq select query to get an updated 
@@ -248,6 +262,6 @@ namespace MediaButler.Common.ResourceAccess
             theAssetFile.Update();
         }
 
-
+       
     }
 }

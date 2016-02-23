@@ -1,4 +1,5 @@
-﻿using MediaButler.Common.ResourceAccess;
+﻿using MediaButler.Common;
+using MediaButler.Common.ResourceAccess;
 using Microsoft.WindowsAzure.MediaServices.Client;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -22,6 +23,7 @@ namespace MediaButler.BaseProcess
 
         private IJob currentJob;
         private IEncoderSupport myEncodigSupport;
+        private IBlobStorageManager myStorageManager;
         /// <summary>
         /// Load encoding profile from local disk or Blob Storage (mediabultlerbin container)
         /// </summary>
@@ -67,7 +69,7 @@ namespace MediaButler.BaseProcess
         }
         private string[] getEncodeInformation()
         {
-            IBlobStorageManager blob = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            
 
             //default Xml Profile
             string xmlEncodeProfile = null;
@@ -76,7 +78,7 @@ namespace MediaButler.BaseProcess
             //First priority Process instance level === .Control as part of the package
             if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
             {
-                string jsonData = blob.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+                string jsonData = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
                 IjsonKeyValue x = new jsonKeyValue(jsonData);
                 encodeProfileName = x.Read("encodigProfile").ToLower();
                 if (!string.IsNullOrEmpty(encodeProfileName))
@@ -84,7 +86,7 @@ namespace MediaButler.BaseProcess
                     try
                     {
                         string xmlURL = myRequest.ButlerRequest.MezzanineFiles.Where(u => u.ToLower().EndsWith(encodeProfileName)).FirstOrDefault();
-                        xmlEncodeProfile = blob.ReadTextBlob(xmlURL);
+                        xmlEncodeProfile = myStorageManager.ReadTextBlob(xmlURL);
                     }
                     catch (Exception)
                     {
@@ -122,7 +124,7 @@ namespace MediaButler.BaseProcess
             var encodeData = getEncodeInformation();
             string EncodingProfileXmlData = encodeData[0];
             string encodingProfileLabel = encodeData[1];
-
+          
             // Get a media packager reference
             IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Windows Azure Media Encoder");
             
@@ -139,14 +141,34 @@ namespace MediaButler.BaseProcess
             // The StateChange method is the same as the one in the previous sample
             //currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
             currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
+           
             // Launch the job.
             currentJob.Submit();
-            //9. Revisa el estado de ejecución del JOB 
-            Task progressJobTask = currentJob.GetExecutionProgressTask(CancellationToken.None);
-            //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
-            //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
+
+            //9. Check Project Status
+            myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
             myEncodigSupport.WaitJobFinish(currentJob.Id);
+            
         }
+        /// <summary>
+        /// Update Transcodig Job advance on Metadata context
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MyEncodigSupport_JobUpdate(object sender, EventArgs e)
+        {
+            string message = (string)sender;
+            if (!myRequest.MetaData.Any(item=>item.Key==Configuration.TranscodingAdvance))
+            {
+                myRequest.MetaData.Add(Configuration.TranscodingAdvance, message);
+            }
+            else
+            {
+                myRequest.MetaData[Configuration.TranscodingAdvance] = message;
+            }
+            myStorageManager.PersistProcessStatus(myRequest);
+        }
+
         private bool IdenpotenceControl()
         {
 
@@ -161,28 +183,24 @@ namespace MediaButler.BaseProcess
             myRequest = (ButlerProcessRequest)request;
 
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-            //0 Helper
+            //0 Encoding Helper
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
-
+            //1. Storage Manager
+            myStorageManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-
             if (IdenpotenceControl())
             {
                 ConvertMP4toSmooth(myAssetOriginal);
-                
-                
-
             }
             else
             {
                 //Job Just wait for finish the current job
+                myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
                 myEncodigSupport.WaitJobFinish(currentJob.Id);
             }
-
             //Update AssetID
             myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
             myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
-
         }
         public override void HandleCompensation(Common.workflow.ChainRequest request)
         {
