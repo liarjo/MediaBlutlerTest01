@@ -60,7 +60,8 @@ namespace MediaButler.BaseProcess
             myMessage.Html = AssetInfoResume.Replace(" ", "&nbsp;").Replace(Environment.NewLine, "<br />").ToString();
 
             var transportWeb = new Web(credentials);
-            transportWeb.Deliver(myMessage);
+            transportWeb.DeliverAsync(myMessage).Wait();
+            //transportWeb.Deliver(myMessage);
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {

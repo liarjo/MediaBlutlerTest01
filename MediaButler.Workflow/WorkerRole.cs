@@ -13,6 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using MediaButler.Common;
 using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure;
 
 namespace MediaButler.Workflow
 {

@@ -14,6 +14,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using MediaButler.Common;
+using Microsoft.Azure;
 
 namespace MediaButler.Watcher
 {

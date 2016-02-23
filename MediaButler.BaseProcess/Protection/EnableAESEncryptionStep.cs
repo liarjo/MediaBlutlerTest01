@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace MediaButler.BaseProcess
 {
+    /*
     class AESEncryptionData
     {
         public string sampleAudience;
@@ -175,4 +176,6 @@ namespace MediaButler.BaseProcess
             Trace.TraceWarning("{0} in process {1} processId {2} has not HandleCompensation", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
         }
     }
+
+    */
 }
