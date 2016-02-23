@@ -203,8 +203,6 @@ namespace MediaButler.Common.ResourceAccess
                         
             return currentAsset;
         }
-
-
         public string LoadEncodeProfile(string profileInfo, string ProcessConfigConn)
         {
             string auxProfile = null;

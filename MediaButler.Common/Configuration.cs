@@ -111,6 +111,11 @@ namespace MediaButler.Common
         public const string ButlerExternalInfoContainer = "mediabutlerbin";
         public const string ButlerWorkflowStatus = "ButlerWorkflowStatus";
 
+        public const string keepStatusProcess = "keepStatusProcess";
+
+        public const string workflowStepListKey = "workflowStepList";
+        public const string workflowStepLength = "workflowStepLength";
+
         public const int maxDequeueCount = 3;
         /// <summary>
         /// Get the configuration Value from the configuration Table. Response is a JSON format

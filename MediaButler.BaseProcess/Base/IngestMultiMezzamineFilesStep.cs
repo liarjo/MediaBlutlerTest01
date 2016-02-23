@@ -214,6 +214,8 @@ namespace MediaButler.BaseProcess
             }
             else
             {
+                string txtMessage = string.Format("{0} IdenpotenceControl {1} instanceID {2} was trigger, not ingest Files",this.GetType(),myRequest.ProcessTypeId,myRequest.ProcessInstanceId);
+                Trace.TraceInformation(txtMessage);
                 myRequest.AssetId = myRequest.MetaData[this.GetType() + "_" + myRequest.ProcessInstanceId];
             }
         }

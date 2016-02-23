@@ -1,7 +1,10 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using MediaButler.Common.workflow;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,6 +60,31 @@ namespace MediaButler.Common.ResourceAccess
             string data = myContainer.GetBlockBlobReference(blobName).DownloadText();
             return data;
 
+        }
+
+        public void PersistProcessStatus(ChainRequest request)
+        {
+            ProcessSnapShot mysh = new ProcessSnapShot(request.ProcessTypeId, request.ProcessInstanceId);
+            try
+            {
+                Newtonsoft.Json.JsonSerializerSettings x = new Newtonsoft.Json.JsonSerializerSettings();
+                x.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                mysh.jsonContext = Newtonsoft.Json.JsonConvert.SerializeObject(request, Newtonsoft.Json.Formatting.None, x);
+
+                mysh.CurrentStep = request.CurrentStepIndex;
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(request.ProcessConfigConn);
+                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+                CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
+                TableOperation insertOperation = TableOperation.InsertOrReplace(mysh);
+                table.CreateIfNotExists();
+                table.Execute(insertOperation);
+            }
+            catch (Exception X)
+            {
+                string txtMessage = string.Format("[{0}] Persist Process Status Error at process {1} instance {2}: error messagase  {3}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, X.Message);
+                Trace.TraceError(txtMessage);
+                throw new Exception(txtMessage);
+            }
         }
     }
 }

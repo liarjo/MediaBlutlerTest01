@@ -166,6 +166,13 @@ namespace MediaButler.Common.workflow
             }
             return xID;
         }
+        //Add basic metadata to the request context
+        private void SetupMetadata(ProcessRequest currentRequest, List<StepHandler> currentSteps)
+        {
+            string workflowStepListData = Newtonsoft.Json.JsonConvert.SerializeObject(currentSteps);
+            currentRequest.MetaData.Add(Configuration.workflowStepListKey, workflowStepListData);
+            currentRequest.MetaData.Add(Configuration.workflowStepLength, currentSteps.Count.ToString());
+        }
         private void execute(CloudQueueMessage currentMessage)
         {
             ProcessRequest myRequest=null;
@@ -177,20 +184,25 @@ namespace MediaButler.Common.workflow
                     currentProcessRunning += 1;
                 }
                 MediaButler.Common.ButlerRequest watcherRequest = Newtonsoft.Json.JsonConvert.DeserializeObject<ButlerRequest>(currentMessage.AsString);
+                //Load Workflow's steps
                 List<StepHandler> mysteps = BuildChain(watcherRequest.WorkflowName);
+                
                 myRequest = GetCurrentContext(watcherRequest.WorkflowName);
                 myRequest.CurrentMessage = currentMessage;
                 myRequest.ProcessTypeId = watcherRequest.WorkflowName;
                 //ProcessInstanceId:
                 //Single File: MessageID Guid (random)
                 //multiFile package: Container folder guid ID (set for client)
-                //myRequest.ProcessInstanceId = watcherRequest.MessageId.ToString();
                 myRequest.ProcessInstanceId = this.getProcessId(watcherRequest);
 
                 myRequest.ProcessConfigConn = this.myProcessConfigConn;
                 myRequest.IsResumeable = (this.ReadConfigOrDefault(myRequest.ProcessTypeId + ".IsResumeable")=="1");
-                //2.Execute Chain
-                txt = string.Format("[{0}] Starting new Process, type {1} and ID {2}",this.GetType().FullName,myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
+
+                //ADD step listo to metadata as information only
+                SetupMetadata(myRequest, mysteps);
+
+                 //2.Execute Chain
+                 txt = string.Format("[{0}] Starting new Process, type {1} and ID {2}",this.GetType().FullName,myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
                 Trace.TraceInformation(txt);
                 mysteps.FirstOrDefault().HandleRequest(myRequest);
                 //FinishProcess();

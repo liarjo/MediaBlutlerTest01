@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using MediaButler.Common.ResourceAccess;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
@@ -114,35 +115,25 @@ namespace MediaButler.Common.workflow
             }
             else
             {
-                //Delete track, process finish
-                FinishProccessStatus(request);
+
+                string jsonData=  MediaButler.Common.Configuration.GetConfigurationValue("roleconfig", "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole", request.ProcessConfigConn);
+
+                IjsonKeyValue x = new jsonKeyValue(jsonData);
+
+                
+                if ((string.IsNullOrEmpty(x.Read(Configuration.keepStatusProcess))) || (x.Read(Configuration.keepStatusProcess) =="0") )
+                {
+                    //Delete track, process finish
+                    FinishProccessStatus(request);
+                }
+                
             }
             request.CurrentStepIndex += 1;
         }
         protected void PersistProcessStatus(ChainRequest request)
         {
-            
-            ProcessSnapShot mysh = new ProcessSnapShot(request.ProcessTypeId, request.ProcessInstanceId);
-            try
-            {
-                Newtonsoft.Json.JsonSerializerSettings x= new Newtonsoft.Json.JsonSerializerSettings();
-                x.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-                mysh.jsonContext = Newtonsoft.Json.JsonConvert.SerializeObject(request,Newtonsoft.Json.Formatting.None,x);
-
-                mysh.CurrentStep = request.CurrentStepIndex;
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(request.ProcessConfigConn);
-                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-                CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
-                TableOperation insertOperation = TableOperation.InsertOrReplace(mysh);
-                table.CreateIfNotExists();
-                table.Execute(insertOperation);
-            }
-            catch (Exception X)
-            {
-                string txtMessage = string.Format("[{0}] Persist Process Status Error at process {1} instance {2}: error messagase  {3}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, X.Message);
-                Trace.TraceError(txtMessage);
-                throw new Exception(txtMessage);
-            }
+            IBlobStorageManager storageManager = BlobManagerFactory.CreateBlobManager(request.ProcessConfigConn);
+            storageManager.PersistProcessStatus(request);
            
         }
         protected void FinishProccessStatus(ChainRequest request)

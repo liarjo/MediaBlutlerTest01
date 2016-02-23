@@ -107,7 +107,8 @@ namespace MediaButler.BaseProcess
                     encodeProfileName = "H264 Adaptive Bitrate MP4 Set 1080p.xml";
                 }
 
-                xmlEncodeProfile = LoadEncodeProfile(encodeProfileName);
+                // xmlEncodeProfile = LoadEncodeProfile(encodeProfileName);
+                xmlEncodeProfile = myEncodigSupport.LoadEncodeProfile(encodeProfileName, myRequest.ProcessConfigConn);
             }
 
             return new string[2] { xmlEncodeProfile, encodeProfileName };
