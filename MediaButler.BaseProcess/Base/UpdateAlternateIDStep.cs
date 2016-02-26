@@ -61,9 +61,12 @@ namespace MediaButler.BaseProcess
                     if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
                     {
                         Uri controlUri = new Uri(myRequest.ButlerRequest.ControlFileUri);
-                        aux = controlUri.Segments[3];
+                        aux = controlUri.Segments[3].Substring(0, controlUri.Segments[3].Length-1);
                     }
-                    
+                    else
+                    {
+                        aux = "Undefined GUID folder";
+                    }
                     break;
                 default:
 
