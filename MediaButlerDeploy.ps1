@@ -13,27 +13,29 @@ $MediaStorageConn="[your Storage Account connection string]"
 #Example "{ ""UserName"":""xxxxxxxxxxx@azure.com"", ""Pswd"":""xxxxxxxxxxx"", ""To"":""admin@yourdomain.com"", ""FromName"": ""Butler Media Framework"", ""FromMail"": ""butler@media.com"" }"
 $SendGridStepConfig=""
 
-#Host options: 1- Cloud Services / 2.- WebJob
-$HostOption=0
+#Host options: 1- Cloud Services [this will be discontinued] / 2.- WebJob
+$HostOption=2
+#Media Butler Host Location, use the same of Media services and Storage
+$serviceLocation='[your Media Services Region]'
+
 
 #If you use Cloud Service fill this varaibles
 #Media Butler Cloud Services Name
 $serviceName="[you Cloud Service Name here]"
-#Media Butler Cloud Services Location
-$serviceLocation="[your Cloud Service and Media Services Region]"
 
 
 #If you use WebJob fill this variables
-#WebSite must exist
-$WebSiteName="[your website name]"
+$webSiteName='[your website name]';
 
-#Constante, not change
+
+#Constant, not change
 #Media Butler Cloud Services Slot
 $slot="Production"
 #Media Butler Package URL
 $package_url="https://mediabutler.blob.core.windows.net/apppublish/20151218%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-12-18T20%3A22%3A32Z&se=2019-12-18T21%3A22%3A00Z&sp=r&sig=mtKNKRc8A4WdBFoxul6NHrjq6nwlCmPzaKawYY5g3gg%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
+$webJobZipURL="https://mediabutler.blob.core.windows.net/apppublish/20160229%2FMediaButlerWebJobHost.zip?sr=b&sv=2015-02-21&st=2016-02-29T16%3A59%3A58Z&se=2016-02-29T17%3A59%3A00Z&sp=r&sig=kYAmcgt%2B7Dw7%2B%2FFhVcSygI9mol05lUxf5%2B22uPtjiUE%3D";
 
 
 Function InsertButlerConfig($accountName,$accountKey,$tableName, $PartitionKey,$RowKey,$value   )
@@ -120,6 +122,32 @@ Function DeployBulter($_serviceName,$_slot,$_package_url,$_serviceLocation,$_con
     Remove-Item  $config
 }
 
+function GetFileFromBlob($fileName,$fileURL){
+
+    $invocation = (Get-Variable MyInvocation).Value
+    $localPath=$invocation.InvocationName.Substring(0,$invocation.InvocationName.IndexOf($invocation.MyCommand))
+    $configFile=$localPath + $fileName;
+    
+    If (Test-Path $configFile){
+	    Remove-Item $configFile
+    }
+
+    Invoke-WebRequest $fileURL -OutFile $configFile 
+
+    return $configFile;
+}
+
+function DeployWebJobHost($location,$siteName,$zipPath){
+    
+
+$site = New-AzureWebsite -Location $location -Name $siteName -Verbose;
+
+$job = New-AzureWebsiteJob -Name $site.Name -JobName "MediaButlerHost" -JobType Continuous -JobFile $zipPath  -Verbose; 
+
+
+
+
+  }
 
 try
 {
@@ -186,7 +214,23 @@ try
     if ($HostOption -eq 2)
     {
         #Web jobs
-        #New-AzureWebsiteJob -JobName BtulerMediaServices -JobType Continuous -JobFile 'K:\TMP\webjob\Application Files\Debug.zip' -Name $WebSiteName 
+        #TODO integrate webjobscript
+         if (Test-AzureName -Website $webSiteName)
+         {
+            Write-Host "Name is not available " + $webSiteName;
+
+        } else
+        {
+  
+            $localZipfile=GetFileFromBlob -fileName 'zip.zip' -fileURL $webJobZipURL;
+            DeployWebJobHost -location $serviceLocation -siteName $webSiteName  -zipPath $localZipfile
+
+            #set application settings 
+            $settings = New-Object Hashtable
+            $settings["MediaButler.ConfigurationStorageConnectionString"] = $sExternalConnString
+            Set-AzureWebsite  -Name  $WebSiteName -AppSettings $settings
+
+        }
     }
 }
 catch 
