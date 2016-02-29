@@ -21,6 +21,39 @@ namespace MediaButler.Common.workflow
         /// </summary>
         protected StepHandler nextStep;
         /// <summary>
+        /// Process Step exception
+        /// 1. Log Execption
+        /// 2. Execute Compensation
+        /// 3. If you have a exception on compensation. log it too
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="stepException"></param>
+        private void manageException(ChainRequest request,Exception stepException)
+        {
+            string TraceMessge = string.Format("[{2}] Step Error {0} at process instance {1}: {3}", GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, stepException.Message);
+            Trace.TraceError(TraceMessge);
+            //request.Exceptions.Add(new Exception(TraceMessge, stepException));
+            request.Exceptions.Add(TraceMessge);
+
+            //Exception Raise from Step
+            request.BreakChain = true;
+            try
+            {
+                //Compensatory action....
+                this.HandleCompensation(request);
+            }
+            catch (Exception compensationException)
+            {
+                TraceMessge = string.Format("[{2}] Step Error at compensatory method {0} at process instance {1}: {3}", GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, compensationException.Message);
+
+                Trace.TraceError(TraceMessge);
+                //request.Exceptions.Add(new Exception(TraceMessge, compensationException));
+                request.Exceptions.Add(TraceMessge);
+
+                throw (compensationException);
+            }
+        }
+        /// <summary>
         /// Set the next Step in the process
         /// </summary>
         /// <param name="nextStep">Nest Step in the process</param>
@@ -47,45 +80,31 @@ namespace MediaButler.Common.workflow
        /// <param name="request">Request sahre by all the steps</param>
         public  void HandleRequest(ChainRequest request)
         {
+            Exception stepException=null;
             string TraceMessge = "";
             try
             {
-                // CheckResumeProcess(request);
                 //Execute step logic
                 request.CurrentStepIndex += 1;
                 //Update process status
                 TraceMessge = string.Format("[{2}] Start Step {0} at process instance {1} step # {3}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, request.CurrentStepIndex.ToString());
                 UpdateProcessStatus(request, TraceMessge);
                 //Execute Workflow's Step
-                this.HandleExecute(request);
+                HandleExecute(request);
                 //Update Process Status
                 TraceMessge = string.Format("[{2}] Finish Step {0} at process instance {1}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId);
                 Trace.TraceInformation(TraceMessge);
-                //
-                FinishProccessStatus(request);
             }
-            catch (Exception X)
+            catch (Exception currentStepException)
             {
-                TraceMessge = string.Format("[{2}] Step Error {0} at process instance {1}: {3}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId,X.Message);
-                Trace.TraceError(TraceMessge);
-                request.Exceptions.Add( new Exception(TraceMessge,X));
-                //Exception Raise from Step
-                request.BreakChain = true;
-                try
-                {
-                    //Compensatory action....
-                    this.HandleCompensation(request);
-                }
-                catch (Exception X2)
-                {
-                    TraceMessge = string.Format("[{2}] Step Error at compensatory method {0} at process instance {1}: {3}", this.GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, X2.Message);
-
-                    Trace.TraceError(TraceMessge);
-                    request.Exceptions.Add(new Exception(TraceMessge, X));
-                    throw (X2);
-                }
+                stepException = currentStepException;
+                //Manage Exception and Trigger Compensation
+                manageException(request, currentStepException);
             }
-            
+
+            //Update table status after finish Step
+            UpdateProcessStatus(request, "");
+
             if (!request.BreakChain)
             {
                 //If exception problem solved Or not Execption
@@ -93,16 +112,25 @@ namespace MediaButler.Common.workflow
                 {       
                     nextStep.HandleRequest(request);
                 }
+                else
+                {
+                    // This is the Workflow last step end.
+                    FinishProccessStatus(request);
+                }
             }
             else
             {
                 //the exceptionwas not solved, break the chain 
                 //and rise the last error
-                throw (request.Exceptions.Last());
+                if (stepException == null)
+                {
+                    TraceMessge = string.Format("[{2}] Step Error  {0} at process instance {1}: {3}", GetType().FullName, request.ProcessInstanceId, request.ProcessTypeId, "Not Exception Information");
+
+                    stepException = new Exception(TraceMessge);
+                }
+                throw (stepException);
             }
         }
-       
-      
         /// <summary>
         /// Update the status in Track table.
         /// </summary>
@@ -110,7 +138,7 @@ namespace MediaButler.Common.workflow
         protected void UpdateProcessStatus(ChainRequest request, string txtInformation)
         {
             Trace.TraceInformation(txtInformation);
-            IBlobStorageManager storageManager = BlobManagerFactory.CreateBlobManager(request.ProcessConfigConn);
+            IButlerStorageManager storageManager = BlobManagerFactory.CreateBlobManager(request.ProcessConfigConn);
             storageManager.PersistProcessStatus(request);
         }
        /// <summary>

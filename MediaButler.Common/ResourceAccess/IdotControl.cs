@@ -24,7 +24,7 @@ namespace MediaButler.Common.ResourceAccess
             if (!string.IsNullOrEmpty(dotControlURL))
             {
                 //
-                IBlobStorageManager resource = BlobManagerFactory.CreateBlobManager(dotControlURL);
+                IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(dotControlURL);
                 jsonControl = resource.ReadTextBlob(dotControlURL);
                 
             }

@@ -165,7 +165,7 @@ namespace MediaButler.BaseProcess
             if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
             {
                 //
-                IBlobStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+                IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
                 string jsonControl = resource.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
                 if (!string.IsNullOrEmpty(jsonControl))
                 {

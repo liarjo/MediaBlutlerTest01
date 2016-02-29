@@ -81,9 +81,12 @@ namespace MediaButler.Common.Host
                 CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
                 CloudQueue poisonQueue = queueClient.GetQueueReference(_Configuration.poisonQueue);
                 poisonQueue.CreateIfNotExists();
+                Common.ResourceAccess.IButlerStorageManager storageManager = Common.ResourceAccess.BlobManagerFactory.CreateBlobManager(_Configuration.ProcessConfigConn);
 
-                MediaButler.Common.ButlerRequest myButlerRequest = Newtonsoft.Json.JsonConvert.DeserializeObject<ButlerRequest>(poisonMessage.AsString);
-                MediaButler.Common.ButlerResponse myButlerResponse = new Common.ButlerResponse();
+
+                //1. Create Butler Response
+                ButlerRequest myButlerRequest = Newtonsoft.Json.JsonConvert.DeserializeObject<ButlerRequest>(poisonMessage.AsString);
+                ButlerResponse myButlerResponse = new Common.ButlerResponse();
 
                 myButlerResponse.MezzanineFiles = myButlerRequest.MezzanineFiles;
                 ////Add to Mezzamine Files the control File URL if it exist
@@ -91,6 +94,7 @@ namespace MediaButler.Common.Host
                 if (!string.IsNullOrEmpty(myButlerRequest.ControlFileUri))
                 {
                     myButlerResponse.MezzanineFiles.Add(myButlerRequest.ControlFileUri);
+                    
                 }
                 myButlerResponse.TimeStampProcessingCompleted = DateTime.Now.ToString();
                 myButlerResponse.TimeStampProcessingStarted = DateTime.Now.ToString();
@@ -100,38 +104,30 @@ namespace MediaButler.Common.Host
                 myButlerResponse.StorageConnectionString = myButlerRequest.StorageConnectionString;
                 myButlerResponse.Log = "Poison Message";
 
-                //Lookin for Errors in Table Status               
-                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-                CloudTable table = tableClient.GetTableReference(MediaButler.Common.Configuration.ButlerWorkflowStatus);
-                TableOperation retrieveOperation =
-                    TableOperation.Retrieve<MediaButler.Common.workflow.ProcessSnapShot>(myButlerRequest.WorkflowName, myButlerRequest.MessageId.ToString());
-                TableResult retrievedResult = table.Execute(retrieveOperation);
-                if (retrievedResult.Result != null)
+                //2. Lookin for Errors in Table Status   
+                string processId = myProcessHandler.getProcessId(myButlerRequest.ControlFileUri, myButlerRequest.MessageId.ToString());
+                var processSnap = storageManager.readProcessSanpShot(myButlerRequest.WorkflowName, processId);
+
+                if (processSnap != null)
                 {
-                    //we have process info
-                    var status = (MediaButler.Common.workflow.ProcessSnapShot)retrievedResult.Result;
-                    try
+                    //2.1 Load Erros
+                    dynamic dynObj = Newtonsoft.Json.JsonConvert.DeserializeObject((processSnap).jsonContext);
+                    var errorList= Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>((dynObj.Exceptions.ToString()));
+                    foreach (var errorTxt in errorList)
                     {
-                        var request = Newtonsoft.Json.JsonConvert.DeserializeObject<MediaButler.Common.workflow.ChainRequest>(status.jsonContext);
-                        foreach (var error in request.Exceptions)
-                        {
-                            myButlerResponse.Log += "\r\n" + error.Message;
-                        }
+                        myButlerResponse.Log += "\r\n" + errorTxt;
                     }
-                    catch (Exception X)
-                    {
-                        Trace.TraceWarning("Unable to load Error LOG in response.log on poison message");
-                        myButlerResponse.Log += "\r\n" + X.Message;
-                        myButlerResponse.Log += "\r\n" + status.jsonContext;
-
-                    }
-
-
-                    //Delete register from Status table
-                    TableOperation insertOperation = TableOperation.Delete(status);
-                    table.Execute(insertOperation);
+                    //2.2 Update status
+                    processSnap.CurrentStep = Configuration.poisonFinishProcessStep;
+                    storageManager.PersistProcessStatus(processSnap);
                 }
-                //Send Poison Mesagge
+                else
+                {
+                    //Update satus no process Status
+                    workflow.ProcessSnapShot x = new workflow.ProcessSnapShot(myButlerResponse.WorkflowName, processId);
+                }
+
+                //3. Send Poison Mesagge
                 CloudQueueMessage poison = new CloudQueueMessage(Newtonsoft.Json.JsonConvert.SerializeObject(myButlerResponse));
                 poisonQueue.AddMessage(poison);
                 sw = true;
@@ -144,6 +140,7 @@ namespace MediaButler.Common.Host
             }
             return sw;
         }
+        
         private void ExecuteWatcherProcess()
         {
             CloudStorageAccount storageAccount;
@@ -213,7 +210,6 @@ namespace MediaButler.Common.Host
             }
         }
         public async Task ExecuteAsync(CancellationToken cancellationToken)
-       //public void Execute()
         {
             //Create de Handler process
             myProcessHandler = new Common.workflow.ProcessHandler(_Configuration.ProcessConfigConn);

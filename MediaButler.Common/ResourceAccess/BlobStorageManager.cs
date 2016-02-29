@@ -11,17 +11,18 @@ using System.Threading.Tasks;
 
 namespace MediaButler.Common.ResourceAccess
 {
-    internal class BlobStorageManager : MediaButler.Common.ResourceAccess.IBlobStorageManager
+    internal class BlobStorageManager : MediaButler.Common.ResourceAccess.IButlerStorageManager
     {
         private string storageConn;
         CloudStorageAccount mezzamineStorageAccount;
         CloudBlobClient blobClient;
+        CloudTableClient tableClient;
         public BlobStorageManager(string connStr)
         {
             storageConn = connStr;
             mezzamineStorageAccount = CloudStorageAccount.Parse(storageConn);
             blobClient = mezzamineStorageAccount.CreateCloudBlobClient();
-
+            tableClient = mezzamineStorageAccount.CreateCloudTableClient();
         }
 
         public void DeleteBlobFile(string blobUrl)
@@ -72,12 +73,10 @@ namespace MediaButler.Common.ResourceAccess
                 mysh.jsonContext = Newtonsoft.Json.JsonConvert.SerializeObject(request, Newtonsoft.Json.Formatting.None, x);
 
                 mysh.CurrentStep = request.CurrentStepIndex;
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(request.ProcessConfigConn);
-                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-                CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
-                TableOperation insertOperation = TableOperation.InsertOrReplace(mysh);
-                table.CreateIfNotExists();
-                table.Execute(insertOperation);
+
+                PersistProcessStatus(mysh);
+
+
             }
             catch (Exception X)
             {
@@ -86,5 +85,35 @@ namespace MediaButler.Common.ResourceAccess
                 throw new Exception(txtMessage);
             }
         }
+        public void PersistProcessStatus(ProcessSnapShot processSnapshot)
+        {  
+            try
+            {
+                CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
+                TableOperation insertOperation = TableOperation.InsertOrReplace(processSnapshot);
+                table.CreateIfNotExists();
+                table.Execute(insertOperation);
+            }
+            catch (Exception X)
+            {
+                string txtMessage = string.Format("[{0}] Persist Process Status Error at process {1} instance {2}: error messagase  {3}", this.GetType().FullName, processSnapshot.RowKey,processSnapshot.PartitionKey, X.Message);
+                Trace.TraceError(txtMessage);
+                throw new Exception(txtMessage);
+            }
+        }
+        public ProcessSnapShot readProcessSanpShot(string processName, string processId)
+        {
+            ProcessSnapShot aux = null;
+            CloudTable table = tableClient.GetTableReference(Configuration.ButlerWorkflowStatus);
+            TableOperation retrieveOperation = TableOperation.Retrieve<ProcessSnapShot>(processName, processId);
+            TableResult retrievedResult = table.Execute(retrieveOperation);
+            if (retrievedResult.Result != null)
+            {
+                aux = (ProcessSnapShot)retrievedResult.Result;
+            }
+                return aux;
+        }
+
+       
     }
 }

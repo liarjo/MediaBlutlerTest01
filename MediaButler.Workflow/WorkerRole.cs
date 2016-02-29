@@ -157,7 +157,8 @@ namespace MediaButler.Workflow
                         var request = Newtonsoft.Json.JsonConvert.DeserializeObject<MediaButler.Common.workflow.ChainRequest>(status.jsonContext);
                         foreach (var error in request.Exceptions)
                         {
-                            myButlerResponse.Log += "\r\n" + error.Message;
+                            //myButlerResponse.Log += "\r\n" + error.Message;
+                            myButlerResponse.Log += "\r\n" + error;
                         }
                     }
                     catch (Exception X)

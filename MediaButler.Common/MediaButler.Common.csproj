@@ -117,7 +117,7 @@
     <Compile Include="ResourceAccess\BlobStorageManager.cs" />
     <Compile Include="ResourceAccess\IdotControl.cs" />
     <Compile Include="ResourceAccess\jsonKeyValue.cs" />
-    <Compile Include="ResourceAccess\IBlobStorageManager.cs" />
+    <Compile Include="ResourceAccess\IButlerStorageManager.cs" />
     <Compile Include="ResourceAccess\EncoderSupport.cs" />
     <Compile Include="ResourceAccess\IjsonKeyValue.cs" />
     <Compile Include="ResourceAccess\IEncoderSupport.cs" />

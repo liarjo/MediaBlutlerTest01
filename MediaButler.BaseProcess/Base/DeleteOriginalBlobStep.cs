@@ -14,7 +14,7 @@ namespace MediaButler.BaseProcess
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            IBlobStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             foreach (string url in myRequest.ButlerRequest.MezzanineFiles)
             {
                 resource.DeleteBlobFile(url);

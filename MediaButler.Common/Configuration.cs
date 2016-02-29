@@ -119,6 +119,11 @@ namespace MediaButler.Common
         public const string TranscodingAdvance = "TranscodingAdvance";
 
         public const int maxDequeueCount = 3;
+
+        public const int successFinishProcessStep = -100;
+        public const int failFinishProcessStep = -200;
+        public const int poisonFinishProcessStep = -300;
+
         /// <summary>
         /// Get the configuration Value from the configuration Table. Response is a JSON format
         /// </summary>

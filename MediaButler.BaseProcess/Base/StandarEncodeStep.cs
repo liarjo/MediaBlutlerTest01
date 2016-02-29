@@ -23,7 +23,7 @@ namespace MediaButler.BaseProcess
 
         private IJob currentJob;
         private IEncoderSupport myEncodigSupport;
-        private IBlobStorageManager myStorageManager;
+        private IButlerStorageManager myStorageManager;
         /// <summary>
         /// Load encoding profile from local disk or Blob Storage (mediabultlerbin container)
         /// </summary>

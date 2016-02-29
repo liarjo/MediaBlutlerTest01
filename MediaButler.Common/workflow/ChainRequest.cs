@@ -19,12 +19,13 @@ namespace MediaButler.Common.workflow
         /// Exceptions list in the process steps
         /// </summary>
         public string ProcessInstanceId { get; set; }
-        public List<Exception> Exceptions;
+        // public List<Exception> Exceptions;
+        public List<string> Exceptions;
         public ChainRequest()
         {
             //config = new ChainConfig();
             //context = new ChainContext();
-            Exceptions=new List<Exception>();
+            Exceptions=new List<string>();
             BreakChain = false;
             IsResumeable = false;
         }

@@ -8,7 +8,7 @@ namespace MediaButler.Common.ResourceAccess
 {
     public class BlobManagerFactory
     {
-        public static IBlobStorageManager CreateBlobManager(string strConn)
+        public static IButlerStorageManager CreateBlobManager(string strConn)
         {
             return new BlobStorageManager(strConn);
         }

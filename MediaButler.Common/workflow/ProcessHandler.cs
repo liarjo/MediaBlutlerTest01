@@ -150,33 +150,57 @@ namespace MediaButler.Common.workflow
         {
             myProcessConfigConn = ProcessConfigConn;
         }
-        private string getProcessId(ButlerRequest currentRequest)
+        public string getProcessId(string ContolFileUri, string messageID)
         {
             string xID = null;
-            if(string.IsNullOrEmpty(currentRequest.ControlFileUri))
+            if(string.IsNullOrEmpty(ContolFileUri))
             {
-                xID = currentRequest.MessageId.ToString();
+                xID = messageID;
             }
             else
             {
                 //get Blob conatier guid
-                Uri xFile = new Uri(currentRequest.ControlFileUri);
+                Uri xFile = new Uri(ContolFileUri);
                 string aux = xFile.Segments[3];
                 xID= aux.Substring(0, aux.Length - 1);
             }
             return xID;
         }
-        //Add basic metadata to the request context
-        private void SetupMetadata(ProcessRequest currentRequest, List<StepHandler> currentSteps)
+        private ProcessRequest restoreRequestOrCreateMetadata(ProcessRequest currentRequest, List<StepHandler> currentSteps)
         {
-            string workflowStepListData = Newtonsoft.Json.JsonConvert.SerializeObject(currentSteps);
-            currentRequest.MetaData.Add(Configuration.workflowStepListKey, workflowStepListData);
-            currentRequest.MetaData.Add(Configuration.workflowStepLength, currentSteps.Count.ToString());
+            Common.ResourceAccess.IButlerStorageManager storageManager= Common.ResourceAccess.BlobManagerFactory.CreateBlobManager(currentRequest.ProcessConfigConn);
+            var processSnap = storageManager.readProcessSanpShot(currentRequest.ProcessTypeId, currentRequest.ProcessInstanceId);
+            if (processSnap==null)
+            {
+                //First time Execution
+                string workflowStepListData = Newtonsoft.Json.JsonConvert.SerializeObject(currentSteps);
+                currentRequest.MetaData.Add(Configuration.workflowStepListKey, workflowStepListData);
+                currentRequest.MetaData.Add(Configuration.workflowStepLength, currentSteps.Count.ToString());
+            }
+            else
+            {
+                //Second or other time execution
+                //load Metadata
+                dynamic dynObj = Newtonsoft.Json.JsonConvert.DeserializeObject((processSnap).jsonContext);
+                //Dictionary<string, string> dynMetaData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>((dynObj.MetaData.ToString()));
+                currentRequest.MetaData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>((dynObj.MetaData.ToString()));
+
+                //load Errors
+                currentRequest.Exceptions= Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>((dynObj.Exceptions.ToString()));
+
+                //Load LOGS Log
+                currentRequest.Log = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>((dynObj.Log.ToString()));
+                
+            }
+
+            return currentRequest;
         }
         private void execute(CloudQueueMessage currentMessage)
         {
             ProcessRequest myRequest=null;
             string txt;
+            Common.ResourceAccess.IButlerStorageManager storageManager=null;
+
             try
             {
                 lock (myLock)
@@ -193,13 +217,14 @@ namespace MediaButler.Common.workflow
                 //ProcessInstanceId:
                 //Single File: MessageID Guid (random)
                 //multiFile package: Container folder guid ID (set for client)
-                myRequest.ProcessInstanceId = this.getProcessId(watcherRequest);
+                myRequest.ProcessInstanceId = this.getProcessId(watcherRequest.ControlFileUri,watcherRequest.MessageId.ToString());
 
                 myRequest.ProcessConfigConn = this.myProcessConfigConn;
                 myRequest.IsResumeable = (this.ReadConfigOrDefault(myRequest.ProcessTypeId + ".IsResumeable")=="1");
 
-                //ADD step listo to metadata as information only
-                SetupMetadata(myRequest, mysteps);
+                //Restore Status
+                storageManager = Common.ResourceAccess.BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+                myRequest = restoreRequestOrCreateMetadata(myRequest, mysteps);
 
                  //2.Execute Chain
                  txt = string.Format("[{0}] Starting new Process, type {1} and ID {2}",this.GetType().FullName,myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
@@ -208,6 +233,10 @@ namespace MediaButler.Common.workflow
                 //FinishProcess();
                 txt = string.Format("[{0}] Finish Process, type {1} and ID {2}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
                 Trace.TraceInformation(txt);
+                //Finish Status
+                myRequest.CurrentStepIndex = Configuration.successFinishProcessStep;
+                storageManager.PersistProcessStatus(myRequest);
+
                 lock (myLock)
                 {
                     currentProcessRunning -= 1;
@@ -217,12 +246,19 @@ namespace MediaButler.Common.workflow
             {
                 if (myRequest != null)
                 {
-                    foreach (Exception item in myRequest.Exceptions)
+                    //foreach (Exception item in myRequest.Exceptions)
+                    foreach (string errorTxt in myRequest.Exceptions)
                     {
                         //Full Rollback?
-                        txt = string.Format("[{0}] Error list process {1} intance {2} error: {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, item.Message);
+                        txt = string.Format("[{0}] Error list process {1} intance {2} error: {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, errorTxt);
                         Trace.TraceError(txt);
                     }
+                    txt = string.Format("[{0}] Error list process {1} intance {2} error: {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, xxx.Message);
+                    myRequest.Exceptions.Add(txt);
+
+                    //Update Status
+                    myRequest.CurrentStepIndex = Configuration.failFinishProcessStep;
+                    storageManager.PersistProcessStatus(myRequest);
                 }
                 else
                 {
@@ -235,7 +271,7 @@ namespace MediaButler.Common.workflow
                 {
                     currentProcessRunning -= 1;
                 }
-               // throw(X);
+               
             }
             //3.return control
             if (myRequest != null)

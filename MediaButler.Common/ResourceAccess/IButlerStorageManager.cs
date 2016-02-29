@@ -2,10 +2,13 @@
 using System;
 namespace MediaButler.Common.ResourceAccess
 {
-    public interface IBlobStorageManager
+    public interface IButlerStorageManager
     {
         void DeleteBlobFile(string blobUrl);
         string ReadTextBlob(string blobUrl);
         void PersistProcessStatus(ChainRequest request);
+        void PersistProcessStatus(ProcessSnapShot processSnapshot);
+        ProcessSnapShot readProcessSanpShot(string processName, string processId);
+        
     }
 }
