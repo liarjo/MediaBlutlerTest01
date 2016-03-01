@@ -80,7 +80,17 @@ namespace MediaButler.BaseProcess
             {
                 string jsonData = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
                 IjsonKeyValue x = new jsonKeyValue(jsonData);
-                encodeProfileName = x.Read("encodigProfile").ToLower();
+                try
+                {
+                    encodeProfileName = x.Read("encodigProfile").ToLower();
+                }
+                catch (Exception)
+                {
+                   string txtTrace = string.Format("[{0}] process Type {1} instance {2} Control has not encodigProfile definition ", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId);
+
+                    Trace.TraceWarning(txtTrace);
+                }
+                
                 if (!string.IsNullOrEmpty(encodeProfileName))
                 {
                     try
@@ -172,8 +182,16 @@ namespace MediaButler.BaseProcess
         private bool IdenpotenceControl()
         {
 
-           
-            currentJob = myEncodigSupport.GetJobByName("Convert to Smooth Streaming job " + myAssetOriginal.Name);
+            try
+            {
+                currentJob = myEncodigSupport.GetJobByName("Convert to Smooth Streaming job " + myAssetOriginal.Name);
+            }
+            catch (Exception)
+            {
+
+                
+            }
+            
 
 
             return (currentJob == null);
