@@ -136,7 +136,8 @@ namespace MediaButler.BaseProcess
             string encodingProfileLabel = encodeData[1];
           
             // Get a media packager reference
-            IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Windows Azure Media Encoder");
+
+            IMediaProcessor processor = myEncodigSupport.GetLatestMediaProcessorByName("Media Encoder Standard");
             
             // Create a task with the conversion details, using the configuration data
             ITask task = currentJob.Tasks.AddNew("Task profile " + encodingProfileLabel,
@@ -151,8 +152,10 @@ namespace MediaButler.BaseProcess
             // The StateChange method is the same as the one in the previous sample
             //currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
             currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
-           
+
             // Launch the job.
+            string message = "job " + currentJob.Id + " Percent complete: 0%";
+            MyEncodigSupport_JobUpdate(message, null);
             currentJob.Submit();
 
             //9. Check Project Status
@@ -168,6 +171,7 @@ namespace MediaButler.BaseProcess
         private void MyEncodigSupport_JobUpdate(object sender, EventArgs e)
         {
             string message = (string)sender;
+            
             if (!myRequest.MetaData.Any(item=>item.Key==Configuration.TranscodingAdvance))
             {
                 myRequest.MetaData.Add(Configuration.TranscodingAdvance, message);
@@ -178,10 +182,13 @@ namespace MediaButler.BaseProcess
             }
             myStorageManager.PersistProcessStatus(myRequest);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private bool IdenpotenceControl()
         {
-
+            //TODO improve to base it on Job status
             try
             {
                 currentJob = myEncodigSupport.GetJobByName("Convert to Smooth Streaming job " + myAssetOriginal.Name);
@@ -217,30 +224,45 @@ namespace MediaButler.BaseProcess
                 myEncodigSupport.WaitJobFinish(currentJob.Id);
             }
             //Update AssetID
-            myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
-            myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
+            updateAsset();
+
         }
         public override void HandleCompensation(Common.workflow.ChainRequest request)
         {
-            string txtTrace;
-
-            if (currentJob!=null )
+            //string txtTrace;
+            deleteOutput();
+            deleteOtiginalAsset();
+        }
+        private void deleteOutput()
+        {
+            if (currentJob != null)
             {
+                //TODO: add Error message datail
+                  
+                //Delete Output Asset is exist
                 foreach (IAsset item in currentJob.OutputMediaAssets)
                 {
-                    txtTrace = string.Format("[{0}] process Type {1} instance {2} deleted Asset id={3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, item.Id);
+                    string txtTrace = string.Format("[{0}] process Type {1} instance {2} deleted Asset id={3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, item.Id);
                     item.Delete();
                     Trace.TraceWarning(txtTrace);
                 }
             }
-
-            if (myAssetOriginal!=null)
+        }
+        private void deleteOtiginalAsset()
+        {
+            //Delete Original Asset becouse it is wrong
+            if (myAssetOriginal != null)
             {
-                txtTrace = string.Format("[{0}] process Type {1} instance {2} deleted Asset id={3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, myAssetOriginal.Id);
-                   
+                string txtTrace = string.Format("[{0}] process Type {1} instance {2} deleted Asset id={3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, myAssetOriginal.Id);
+
                 myAssetOriginal.Delete();
                 Trace.TraceWarning(txtTrace);
             }
+        }
+        private void updateAsset()
+        {
+            myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
+            myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
         }
     }
 }
