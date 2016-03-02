@@ -35,7 +35,7 @@ $slot="Production"
 $package_url="https://mediabutler.blob.core.windows.net/apppublish/20151218%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-12-18T20%3A22%3A32Z&se=2019-12-18T21%3A22%3A00Z&sp=r&sig=mtKNKRc8A4WdBFoxul6NHrjq6nwlCmPzaKawYY5g3gg%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
-$webJobZipURL="https://mediabutler.blob.core.windows.net/apppublish/20160229%2FMediaButlerWebJobHost.zip?sr=b&sv=2015-02-21&st=2016-02-29T16%3A59%3A58Z&se=2016-02-29T17%3A59%3A00Z&sp=r&sig=kYAmcgt%2B7Dw7%2B%2FFhVcSygI9mol05lUxf5%2B22uPtjiUE%3D";
+$webJobZipURL="https://mediabutler.blob.core.windows.net/apppublish/20160302%2FMediaButlerWebJobHost.zip?sr=b&sv=2015-02-21&st=2016-03-02T23%3A58%3A07Z&se=2019-03-03T00%3A58%3A00Z&sp=r&sig=NxlwlQt%2Bv9EVtPwaK2nfYjsNltG%2BMWEQvaj0A277lao%3D";
 
 
 Function InsertButlerConfig($accountName,$accountKey,$tableName, $PartitionKey,$RowKey,$value   )
