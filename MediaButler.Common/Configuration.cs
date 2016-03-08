@@ -123,6 +123,7 @@ namespace MediaButler.Common
         public const int successFinishProcessStep = -100;
         public const int failFinishProcessStep = -200;
         public const int poisonFinishProcessStep = -300;
+        public const int workflowFatalError = -400;
 
         /// <summary>
         /// Get the configuration Value from the configuration Table. Response is a JSON format

@@ -117,8 +117,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\CreateSasLocatorStep.cs" />
+    <Compile Include="Base\DeleteCurrentAssetStep.cs" />
     <Compile Include="Base\DeleteOriginalBlobStep.cs" />
     <Compile Include="Base\SetupAMSAccountStep.cs" />
+    <Compile Include="miscellaneous\ListAssetFilesOnRequestLogStep.cs" />
+    <Compile Include="miscellaneous\SelectAssetByProcessIDStep.cs" />
     <Compile Include="PremiunEncoder\PremiunConfig.cs" />
     <Compile Include="PremiunEncoder\PremiunEncoderStep.cs" />
     <Compile Include="Protection\EnableAESEncryptionStep.cs" />

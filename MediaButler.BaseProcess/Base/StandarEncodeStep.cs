@@ -121,10 +121,33 @@ namespace MediaButler.BaseProcess
             currentJob.Submit();
 
             //9. Check Project Status
+            myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
             myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
             myEncodigSupport.WaitJobFinish(currentJob.Id);
             
         }
+        /// <summary>
+        /// Send Jpb and task error message to Trace and Reuqest exception list
+        /// </summary>
+        /// <param name="sender">JOB</param>
+        /// <param name="e"></param>
+        private void MyEncodigSupport_OnJobError(object sender, EventArgs e)
+        {
+            IJob myJob = (IJob)sender;
+
+            foreach (ITask task in myJob.Tasks)
+            {
+                foreach (ErrorDetail detail in task.ErrorDetails)
+                {
+                    string txt = string.Format("Error Job encoder Code: [{0}] Error Message: {1}", detail.Code, detail.Message);
+                    Trace.TraceError(txt);
+                    myRequest.Exceptions.Add(txt);
+                }
+            }
+        }
+
+
+
         /// <summary>
         /// Update Transcodig Job advance on Metadata context
         /// </summary>
@@ -186,7 +209,6 @@ namespace MediaButler.BaseProcess
         }
         public override void HandleCompensation(Common.workflow.ChainRequest request)
         {
-            //string txtTrace;
             deleteOutput();
             deleteOtiginalAsset();
         }

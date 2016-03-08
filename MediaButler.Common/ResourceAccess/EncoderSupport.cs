@@ -19,10 +19,15 @@ namespace MediaButler.Common.ResourceAccess
     {
         private CloudMediaContext _MediaServicesContext;
         private string PreviousJobState="-";
+       
         public EncoderSupport(CloudMediaContext MediaServicesContext)
         {
             _MediaServicesContext = MediaServicesContext;
         }
+
+        public event EventHandler OnJobError;
+      
+
         public IMediaProcessor GetLatestMediaProcessorByName(string mediaProcessorName)
         {
             var processor = _MediaServicesContext.MediaProcessors.Where(p => p.Name == mediaProcessorName).
@@ -66,7 +71,7 @@ namespace MediaButler.Common.ResourceAccess
                 case JobState.Error:
                     //if (OnJobError != null)
                     //{
-                    //    OnJobError(this, job);
+                    //    OnJobError(job, null);
                     //}
                     break;
                 default:
@@ -101,15 +106,17 @@ namespace MediaButler.Common.ResourceAccess
                 Thread.Sleep(TimeSpan.FromSeconds(10));
                 myJob.Refresh();
             }
-            //TODO: test this kind of error
+            //manage Error Details
             if (myJob.State == JobState.Error)
             {
-                throw new Exception(string.Format("Error JOB {0}", myJob.Id));
-                
-
+                if (OnJobError!=null)
+                {
+                    OnJobError(myJob, null);
+                }
+               
             }
         }
-        //public delegate void ChangedEventHandler(object sender, EventArgs e);
+
         public event EventHandler JobUpdate;
 
         public IJob GetJob(string jobId)

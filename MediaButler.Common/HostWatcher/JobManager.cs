@@ -95,6 +95,21 @@ namespace MediaButler.Common.HostWatcher
                 if (j.JobControlFile != null)
                 {
                     message.ControlFileUri = j.JobControlFile.ToString();
+                    if (message.WorkflowName=="")
+                    {
+                        //Process with only ControlFile
+                        try
+                        {
+                            Uri controlUri = new Uri(message.ControlFileUri);
+                            message.WorkflowName = controlUri.Segments[1].Substring(0, controlUri.Segments[1].Length - 1);
+                        }
+                        catch (Exception)
+                        {
+                            
+                        }
+                        
+                        
+                    }
                 }
 
                 CloudQueueMessage butlerRequestMessage = new CloudQueueMessage(JsonConvert.SerializeObject(message));

@@ -14,6 +14,7 @@ namespace MediaButler.Common.ResourceAccess
         void StateChanged(object sender, JobStateChangedEventArgs e);
         void WaitJobFinish(string jobId);
         event EventHandler JobUpdate;
+        event EventHandler OnJobError;
         IJob GetJob(string jobId);
         IJob GetJobByName(string JobName);
         IAsset CreateAsset(string AssetName, string blobUrl, string MediaStorageConn, string StorageConnectionString, string WorkflowName);

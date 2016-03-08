@@ -123,8 +123,11 @@ namespace MediaButler.Common.Host
                 }
                 else
                 {
+                    //No process execution, fatal error
                     //Update satus no process Status
-                    workflow.ProcessSnapShot x = new workflow.ProcessSnapShot(myButlerResponse.WorkflowName, processId);
+                    workflow.ProcessSnapShot psPoison = new workflow.ProcessSnapShot(myButlerResponse.WorkflowName, processId);
+                    psPoison.CurrentStep = Configuration.workflowFatalError;
+                    storageManager.PersistProcessStatus(psPoison);
                 }
 
                 //3. Send Poison Mesagge
