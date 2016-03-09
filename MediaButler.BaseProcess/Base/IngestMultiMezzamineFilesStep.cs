@@ -153,8 +153,18 @@ namespace MediaButler.BaseProcess
         }
         private bool IdenpotenceControl()
         {
-            
-            return !myRequest.MetaData.ContainsKey(this.GetType() + "_" + myRequest.ProcessInstanceId);
+           bool aux = true;
+           if (myRequest.MetaData.ContainsKey(this.GetType() + "_" + myRequest.ProcessInstanceId))
+            {
+                string assetId=myRequest.MetaData[this.GetType() + "_" + myRequest.ProcessInstanceId];
+                aux = (null== (from m in MediaContext.Assets select m).Where(m => m.Id == assetId).FirstOrDefault());
+                //Delete mark if asset don't exist
+                if (aux)
+                {
+                    myRequest.MetaData.Remove(this.GetType() + "_" + myRequest.ProcessInstanceId);
+                }
+            }
+            return aux;
         }
         private void setPrimaryFile()
         {
@@ -197,10 +207,10 @@ namespace MediaButler.BaseProcess
         {
             //Custome Request
             myRequest = (ButlerProcessRequest)request;
+            //Media context 
+            MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
             if (IdenpotenceControl())
             {
-                //Media context 
-                MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
                 //Create empty asset
                 currentAsset = CreateAsset();
                 //Update Asset Id in the process context

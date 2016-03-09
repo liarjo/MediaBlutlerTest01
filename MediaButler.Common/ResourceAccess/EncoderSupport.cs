@@ -113,6 +113,10 @@ namespace MediaButler.Common.ResourceAccess
                 {
                     OnJobError(myJob, null);
                 }
+                else
+                {
+                    throw new Exception("JOB Error");
+                }
                
             }
         }

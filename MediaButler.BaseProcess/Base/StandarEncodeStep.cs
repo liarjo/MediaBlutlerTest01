@@ -115,10 +115,16 @@ namespace MediaButler.BaseProcess
             //currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
             currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
 
-            // Launch the job.
+            //Set advantce on 0%
             string message = "job " + currentJob.Id + " Percent complete: 0%";
             MyEncodigSupport_JobUpdate(message, null);
+            
+            // Launch the job.
             currentJob.Submit();
+
+            //8. Idenpotence MARK
+            myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
+            myStorageManager.PersistProcessStatus(myRequest);
 
             //9. Check Project Status
             myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
@@ -133,22 +139,22 @@ namespace MediaButler.BaseProcess
         /// <param name="e"></param>
         private void MyEncodigSupport_OnJobError(object sender, EventArgs e)
         {
+            string txt = "JOB ERROR";
             IJob myJob = (IJob)sender;
 
             foreach (ITask task in myJob.Tasks)
             {
                 foreach (ErrorDetail detail in task.ErrorDetails)
                 {
-                    string txt = string.Format("Error Job encoder Code: [{0}] Error Message: {1}", detail.Code, detail.Message);
+                     txt = string.Format("Error Job encoder Code: [{0}] Error Message: {1}", detail.Code, detail.Message);
                     Trace.TraceError(txt);
                     myRequest.Exceptions.Add(txt);
                 }
             }
+
+            throw new Exception(txt);
         }
-
-
-
-        /// <summary>
+       /// <summary>
         /// Update Transcodig Job advance on Metadata context
         /// </summary>
         /// <param name="sender"></param>
@@ -173,26 +179,36 @@ namespace MediaButler.BaseProcess
         /// <returns></returns>
         private bool IdenpotenceControl()
         {
-            //TODO improve to base it on Job status
-            try
+            if (myRequest.MetaData.ContainsKey(this.GetType() + "_" + myRequest.ProcessInstanceId))
             {
-                currentJob = myEncodigSupport.GetJobByName("Convert to Smooth Streaming job " + myAssetOriginal.Name);
+                string jobidContext = myRequest.MetaData[this.GetType() + "_" + myRequest.ProcessInstanceId];
+                currentJob = (from j in _MediaServicesContext.Jobs select j).Where(j => j.Id == jobidContext).FirstOrDefault();
+
+                if (currentJob!=null)
+                {
+                    if (currentJob.State == JobState.Error)
+                    {
+                        currentJob = null;
+                        myRequest.MetaData.Remove(this.GetType() + "_" + myRequest.ProcessInstanceId);
+                    }
+                }
             }
-            catch (Exception)
-            {
-            }
+
             return (currentJob == null);
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
+            //My request
             myRequest = (ButlerProcessRequest)request;
-
+            //Media Context
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
             //0 Encoding Helper
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             //1. Storage Manager
             myStorageManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            //2. Load Original Asset (current on context)
             myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
+
             if (IdenpotenceControl())
             {
                 ConvertMP4toSmooth(myAssetOriginal);
@@ -200,6 +216,7 @@ namespace MediaButler.BaseProcess
             else
             {
                 //Job Just wait for finish the current job
+                myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
                 myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
                 myEncodigSupport.WaitJobFinish(currentJob.Id);
             }
@@ -216,8 +233,6 @@ namespace MediaButler.BaseProcess
         {
             if (currentJob != null)
             {
-                //TODO: add Error message datail
-                  
                 //Delete Output Asset is exist
                 foreach (IAsset item in currentJob.OutputMediaAssets)
                 {
@@ -241,7 +256,7 @@ namespace MediaButler.BaseProcess
         private void updateAsset()
         {
             myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
-            myRequest.MetaData.Add(this.GetType() + "_" + myRequest.ProcessInstanceId, currentJob.Id);
+
         }
     }
 }
