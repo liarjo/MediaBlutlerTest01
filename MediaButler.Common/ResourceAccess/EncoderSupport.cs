@@ -19,15 +19,12 @@ namespace MediaButler.Common.ResourceAccess
     {
         private CloudMediaContext _MediaServicesContext;
         private string PreviousJobState="-";
-       
         public EncoderSupport(CloudMediaContext MediaServicesContext)
         {
             _MediaServicesContext = MediaServicesContext;
         }
-
         public event EventHandler OnJobError;
-      
-
+        public event EventHandler JobUpdate;
         public IMediaProcessor GetLatestMediaProcessorByName(string mediaProcessorName)
         {
             var processor = _MediaServicesContext.MediaProcessors.Where(p => p.Name == mediaProcessorName).
@@ -51,10 +48,11 @@ namespace MediaButler.Common.ResourceAccess
             switch (e.CurrentState)
             {
                 case JobState.Finished:
-                    //if (OnJobFinish != null)
-                    //{
-                    //    OnJobFinish(this, job);
-                    //}
+                    if (JobUpdate != null)
+                    {
+                        string message = "job " + job.Id + " Percent complete: 100%";
+                        JobUpdate(message, null);
+                    }
                     break;
                 //case JobState.Canceling:
                 //case JobState.Queued:
@@ -69,10 +67,11 @@ namespace MediaButler.Common.ResourceAccess
                     //}
                     break;
                 case JobState.Error:
-                    //if (OnJobError != null)
-                    //{
-                    //    OnJobError(job, null);
-                    //}
+                    if (JobUpdate != null)
+                    {
+                        string message = "job " + job.Id + " Percent complete: -1%";
+                        JobUpdate(message, null);
+                    }
                     break;
                 default:
                     break;
@@ -120,9 +119,6 @@ namespace MediaButler.Common.ResourceAccess
                
             }
         }
-
-        public event EventHandler JobUpdate;
-
         public IJob GetJob(string jobId)
         {
             // Use a Linq select query to get an updated 
@@ -273,6 +269,6 @@ namespace MediaButler.Common.ResourceAccess
             theAssetFile.Update();
         }
 
-       
+
     }
 }

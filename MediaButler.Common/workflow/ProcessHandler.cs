@@ -95,7 +95,17 @@ namespace MediaButler.Common.workflow
             StepHandler prevStep=null;
 
             List<StepHandler> auxSteps = new List<StepHandler>();
-            string jsonTxt = ReadChainConfig(processTypeId);
+            string jsonTxt;
+            try
+            {
+                jsonTxt = ReadChainConfig(processTypeId);
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("[Error at BuildChain] Process " + processTypeId + " Not Found, check ButlerConfiguration Table");
+            }
+        
             //Sensible config manually
             List<stepTypeInfo> StepList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<stepTypeInfo>>(jsonTxt);
             

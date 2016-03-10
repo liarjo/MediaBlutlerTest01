@@ -1,4 +1,5 @@
 ﻿using MediaButler.BaseProcess;
+using MediaButler.Common;
 using MediaButler.Common.ResourceAccess;
 using Microsoft.WindowsAzure.MediaServices.Client;
 using System;
@@ -15,11 +16,12 @@ namespace MediaButler.PremiunEncoder
     {
         private ButlerProcessRequest myRequest;
         private CloudMediaContext _MediaServicesContext;
+        private IButlerStorageManager myStorageManager;
         private IAsset myAssetOriginal;
         private IAsset myWorkflow;
         private IJob currentJob;
         private PremiunConfig myConfig;
-        private IAsset getWorkflowAsset()
+        private IAsset createWorkflowAsset()
         {
             IAsset aux = null;
             IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
@@ -48,7 +50,6 @@ namespace MediaButler.PremiunEncoder
             }
             return aux;
         }
-
         private IAsset CreateEncodingJob(IAsset workflow, IAsset video)
         {
             IEncoderSupport myEncodigSupport = new EncoderSupport(_MediaServicesContext);
@@ -69,25 +70,55 @@ namespace MediaButler.PremiunEncoder
             // Use the following event handler to check job progress. 
             // The StateChange method is the same as the one in the previous sample
             currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
+            //Set advantce on 0%
+            string message = "job " + currentJob.Id + " Percent complete: 0%";
+            MyEncodigSupport_JobUpdate(message, null);
             // Launch the job.
             currentJob.Submit();
             //9. Revisa el estado de ejecución del JOB 
             Task progressJobTask = currentJob.GetExecutionProgressTask(CancellationToken.None);
             //10. en vez de utilizar  progressJobTask.Wait(); que solo muestra cuando el JOB termina
             //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
+            myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
+            myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
             myEncodigSupport.WaitJobFinish(currentJob.Id);
             return currentJob.OutputMediaAssets.FirstOrDefault();
         }
-        private void SetVideoPrimary()
+        private void MyEncodigSupport_JobUpdate(object sender, EventArgs e)
         {
-            IAssetFile video= myAssetOriginal.AssetFiles.Where(f => !(f.Name.EndsWith(".workflow"))).FirstOrDefault();
-            video.IsPrimary = true;
-            video.Update();
+            string message = (string)sender;
+
+            if (!myRequest.MetaData.Any(item => item.Key == Configuration.TranscodingAdvance))
+            {
+                myRequest.MetaData.Add(Configuration.TranscodingAdvance, message);
+            }
+            else
+            {
+                myRequest.MetaData[Configuration.TranscodingAdvance] = message;
+            }
+            myStorageManager.PersistProcessStatus(myRequest);
+        }
+        private void MyEncodigSupport_OnJobError(object sender, EventArgs e)
+        {
+            string txt = "JOB ERROR";
+            IJob myJob = (IJob)sender;
+
+            foreach (ITask task in myJob.Tasks)
+            {
+                foreach (ErrorDetail detail in task.ErrorDetails)
+                {
+                    txt = string.Format("Error Job encoder Code: [{0}] Error Message: {1}", detail.Code, detail.Message);
+                    Trace.TraceError(txt);
+                    myRequest.Exceptions.Add(txt);
+                }
+            }
+
+            throw new Exception(txt);
         }
         private void Setup()
-        {     
-            IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
-            string jsonControl = resource.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+        {
+            myStorageManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            string jsonControl = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
             myConfig =null;
             try
             {
@@ -125,21 +156,23 @@ namespace MediaButler.PremiunEncoder
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
-            
+            //Request
             myRequest = (ButlerProcessRequest)request;
+            //Media Context
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            // Original Asset
+            myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
             //Setup Step
             Setup();
-
-            myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-            //set primary file
-            SetVideoPrimary();
             //Load the workflow definition
-            myWorkflow = getWorkflowAsset();
-            //Encode
+            myWorkflow = createWorkflowAsset();
+            //Delete workflow from Original Asset
+            string fileName="";
+            fileName = myAssetOriginal.AssetFiles.Where(af => af.Name.ToLower().EndsWith(".workflow")).FirstOrDefault().Name;    
+            myAssetOriginal.AssetFiles.Where(f => f.Name.ToLower() == fileName.ToLower()).FirstOrDefault().Delete();
+            //Encode Uisng Premiun Encoder
             myRequest.AssetId = CreateEncodingJob(myWorkflow, myAssetOriginal).Id;
         }
-
         public override void HandleCompensation(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;

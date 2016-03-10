@@ -221,7 +221,7 @@ namespace MediaButler.BaseProcess
                 myEncodigSupport.WaitJobFinish(currentJob.Id);
             }
             //Update AssetID
-            updateAsset();
+            myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
 
         }
         public override void HandleCompensation(Common.workflow.ChainRequest request)
@@ -253,10 +253,6 @@ namespace MediaButler.BaseProcess
                 Trace.TraceWarning(txtTrace);
             }
         }
-        private void updateAsset()
-        {
-            myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
-
-        }
+        
     }
 }
