@@ -45,37 +45,37 @@ namespace MediaButler.Common.ResourceAccess
                 Trace.TraceInformation("Job {0} state Changed from {1} to {2}", job.Id, e.PreviousState, e.CurrentState);
 
             }
-            switch (e.CurrentState)
-            {
-                case JobState.Finished:
-                    if (JobUpdate != null)
-                    {
-                        string message = "job " + job.Id + " Percent complete: 100%";
-                        JobUpdate(message, null);
-                    }
-                    break;
-                //case JobState.Canceling:
-                //case JobState.Queued:
-                //case JobState.Scheduled:
-                //case JobState.Processing:
-                //    //Trace.TraceInformation("Please wait Job {0} Finish", job.Id);
-                //    break;
-                case JobState.Canceled:
-                    //if (OnJobCancel != null)
-                    //{
-                    //    OnJobCancel(this, job);
-                    //}
-                    break;
-                case JobState.Error:
-                    if (JobUpdate != null)
-                    {
-                        string message = "job " + job.Id + " Percent complete: -1%";
-                        JobUpdate(message, null);
-                    }
-                    break;
-                default:
-                    break;
-            }
+            //switch (e.CurrentState)
+            //{
+            //    case JobState.Finished:
+            //        //if (JobUpdate != null)
+            //        //{
+            //        //    string message = "job " + job.Id + " Percent complete: 100%";
+            //        //    JobUpdate(message, null);
+            //        //}
+            //        break;
+            //    //case JobState.Canceling:
+            //    //case JobState.Queued:
+            //    //case JobState.Scheduled:
+            //    //case JobState.Processing:
+            //    //    //Trace.TraceInformation("Please wait Job {0} Finish", job.Id);
+            //    //    break;
+            //    case JobState.Canceled:
+            //        //if (OnJobCancel != null)
+            //        //{
+            //        //    OnJobCancel(this, job);
+            //        //}
+            //        break;
+            //    case JobState.Error:
+            //        //if (JobUpdate != null)
+            //        //{
+            //        //    string message = "job " + job.Id + " Percent complete: -1%";
+            //        //    JobUpdate(message, null);
+            //        //}
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
         public void WaitJobFinish(string jobId)
         {
@@ -102,22 +102,49 @@ namespace MediaButler.Common.ResourceAccess
 
                 }
 
-                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Thread.Sleep(TimeSpan.FromSeconds(5));
                 myJob.Refresh();
             }
-            //manage Error Details
-            if (myJob.State == JobState.Error)
+
+            switch (myJob.State)
             {
-                if (OnJobError!=null)
-                {
-                    OnJobError(myJob, null);
-                }
-                else
-                {
-                    throw new Exception("JOB Error");
-                }
-               
+                case JobState.Queued:
+                    break;
+                case JobState.Scheduled:
+                    break;
+                case JobState.Processing:
+                    break;
+                case JobState.Finished:
+                    if (JobUpdate != null)
+                    {
+                        string message = "job " + myJob.Id + " Percent complete: 100%";
+                        JobUpdate(message, null);
+                    }
+                    break;
+                case JobState.Error:
+                    if (JobUpdate != null)
+                    {
+                        string message = "job " + myJob.Id + " Percent complete: -1%";
+                        JobUpdate(message, null);
+                    }
+                    if (OnJobError != null)
+                    {
+                        OnJobError(myJob, null);
+                    }
+                    else
+                    {
+                        throw new Exception("[Error] Transcoding Job ID " + myJob.Id);
+                    }
+                    break;
+                case JobState.Canceled:
+                    break;
+                case JobState.Canceling:
+                    break;
+                default:
+                    break;
             }
+            
+
         }
         public IJob GetJob(string jobId)
         {
