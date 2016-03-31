@@ -56,8 +56,39 @@ namespace MediaButler.BaseProcess
                 {
                     try
                     {
+                        //Encodig Profile has info
+
                         string xmlURL = myRequest.ButlerRequest.MezzanineFiles.Where(u => u.ToLower().EndsWith(encodeProfileName)).FirstOrDefault();
-                        xmlEncodeProfile = myStorageManager.ReadTextBlob(xmlURL);
+
+                        if (string.IsNullOrEmpty(xmlURL))
+                        {
+                            //Not custom encodig profile on input package ==> Preset
+                            xmlEncodeProfile = myEncodigSupport.LoadEncodeProfile(encodeProfileName, myRequest.ProcessConfigConn); 
+                        }
+                        else
+                        {
+                            //xmlEncodeProfile = myStorageManager.ReadTextBlob(xmlURL);
+
+
+                            Uri xmlURI = new Uri(xmlURL);
+                            string container = xmlURI.Segments[1].Substring(0, xmlURI.Segments[1].Length - 1);
+                            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(myRequest.ProcessConfigConn);
+                            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                            CloudBlobContainer containerX = blobClient.GetContainerReference(container);
+                            CloudBlockBlob blockBlob = containerX.GetBlockBlobReference(xmlURI.Segments[2] + xmlURI.Segments[3] + xmlURI.Segments[4]);
+                            if (blockBlob.Exists())
+                            {
+                                //Trace.TraceInformation("[{0}] process Type {1} instance {2} Encoder Profile {3} from Blob Storage", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, profileInfo);
+
+                                using (var memoryStream = new MemoryStream())
+                                {
+                                    blockBlob.DownloadToStream(memoryStream);
+                                    memoryStream.Position = 0;
+                                    StreamReader sr = new StreamReader(memoryStream, System.Text.Encoding.ASCII);
+                                    xmlEncodeProfile = sr.ReadToEnd();
+                                }
+                            }
+                        }
                     }
                     catch (Exception)
                     {

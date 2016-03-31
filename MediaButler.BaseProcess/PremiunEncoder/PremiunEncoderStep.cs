@@ -118,28 +118,30 @@ namespace MediaButler.PremiunEncoder
         private void Setup()
         {
             myStorageManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
-            string jsonControl = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
-            myConfig =null;
-            try
-            {
-                if (!string.IsNullOrEmpty(jsonControl))
-                {
-                    //instance process configuration
-                    myConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<PremiunConfig>(jsonControl);
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(this.StepConfiguration))
-                    {
-                        //general process configuration
-                        myConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<PremiunConfig>(this.StepConfiguration);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                Trace.TraceWarning("PremiumEncodingStep configuration Error, it will use default");
-            }
+
+            //TODO: load configuration from control // mange control worng properties
+            //string jsonControl = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+            //myConfig =null;
+            //try
+            //{
+            //    if (!string.IsNullOrEmpty(jsonControl))
+            //    {
+            //        //instance process configuration
+            //        myConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<PremiunConfig>(jsonControl);
+            //    }
+            //    else
+            //    {
+            //        if (!string.IsNullOrEmpty(this.StepConfiguration))
+            //        {
+            //            //general process configuration
+            //            myConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<PremiunConfig>(this.StepConfiguration);
+            //        }
+            //    }
+            //}
+            //catch (Exception)
+            //{
+            //    Trace.TraceWarning("PremiumEncodingStep configuration Error, it will use default");
+            //}
             
             if(myConfig==null)
             {
@@ -147,8 +149,8 @@ namespace MediaButler.PremiunEncoder
                 myConfig = new PremiunConfig()
                     {
                         AssetWorkflowID = null,
-                        EncodingJobName = "Media Bulter Premium Workflow encoding job",
-                        EncodigTaskName = "Media Bulter Premium Workflow encoding task"
+                        EncodingJobName = "Media Bulter Premium Workflow encoding job " + myRequest.ProcessInstanceId,
+                        EncodigTaskName = "Media Bulter Premium Workflow encoding task" + myRequest.ProcessTypeId
                     };
             }
             
