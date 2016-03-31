@@ -3,7 +3,7 @@
 <b>Media Butler framework </b> is a VOD workflow automation framework for Azure Media Services. It support create different workflow using configuration, combining pre-defined steps or using customs steps create by code.
 The basic workflow implementation is a folder watch folder but you can automate more complex scenarios like AMS replication cross regions.
 
-Media butler is composed by 2 workers roles: Watcher and Workflow role. First one take the new files and submit it to Workflow Manager  by ButlerSend Queue. When a new job is summited, this role move the original files form Incoming folder to Processing.   Once the process finish, success or fail, this role receive a message and process it. If the process was success, it will move the original date from Processing to Success folder. In the fail case, will move to Fail folder.
+Media butler is composed by 2 workers process: Watcher and Workflow role. First one take the new files and submit it to Workflow Manager  by ButlerSend Queue. When a new job is summited, this process move the original files form Incoming folder to Processing.   Once the process finish, success or fail, this process receive a message and process it. If the process was success, it will move the original date from Processing to Success folder. In the fail case, will move to Fail folder.
 
 Workflow Manager is Media Butler's core, it is the workflow coordinator. It receives jobs from ButlerSend queue, and process it following the process definition in ButlerConfiguration table. This role, follow and control the process and execute each step. When the process finish, it sends the notification as is configured. 
 
@@ -24,7 +24,8 @@ This version has this process steps ready to use:
 11.	Mail Notification
 12.	Blob text Notification
 13.	Replica: replicate videos from one AMS to another AMS for HA deployments
-
+14. Premiun Encoder: single task job on premiuen encoder
+15. Service Bus Notification: send Service bus notification 
   
 
  <h2>How to deploy Media Butler Framework</h2>
@@ -32,11 +33,12 @@ This version has this process steps ready to use:
 
   1. Azure Subscription
   2. Azure Media Services Name and Key
-  3. Empty Azure Storage Account Name for Media Butler Framework
-  4. [Optional] SendGrid account
+  3. Available Storage Account Name for Media Butler Stage storage
+  4. Available Web APP Name for host Media Butler Framework on a Web Job
+  5. [Optional] SendGrid account
 
-  <h3>Deploy Media Butler all in one</h3>
-  Media Butler Framework (MBF) has a deployment PowerShell <a href="./MediaButlerDeploy.ps1">script</a>. This script deploy MBF in the All in one deployment and create a basic process, ready to use. This basis process´s steps are:
+  <h3>Deploy Media Butler on a Web JOB</h3>
+  Media Butler Framework (MBF) has a deployment PowerShell <a href="./MediaButlerDeploy.ps1">script</a>. This script deploy MBF in the All in one deployment host on Web Job  and create a basic process example, ready to use. This basis process´s steps are:
 
   1. Ingest the mezzanine file
   2. Encode using default profile
@@ -45,17 +47,17 @@ This version has this process steps ready to use:
   5. Create a SAS Locator
   6. Write the process output info in the LOG file
 
-You only need to setup this variable
+  You only need to setup this variable
 
 a. $azureSubscriptionName: Azure subscription name<br>
-b. $butlerStorageAccountName: Butler's storage account name<br>
+b. $butlerStorageAccountName: Butler's stage storage account name. It will be create a new storage<br>
 c. $MediaServiceAccountName: AMS account name<br>
 d. $PrimaryMediaServiceAccessKey: AMS access Key<br>
 e. $MediaStorageConn: AMS storage account connection string<br>
 f. $SendGridStepConfig: Options, if you want to use SendGrid Mail Notification yo need to add your step configuration here.<br>
-g. $serviceName: Cloud Services Name for Media Butler<br>
-h. $slot="Production"<br>
-i. $serviceLocation: Cloud Services Location, it must be in the same AMS's location<br>
+g. $HostOption=2, this option set Media Butler Framework's host on a Web JOB.<br> 
+h. $serviceLocation: Media Butler Host Location, it must be in the same AMS's location<br>
+i. $webSiteName: Web APP name where Host will be deploy on a Web JOB.<br>
 
 Execute the script, and that is!
 

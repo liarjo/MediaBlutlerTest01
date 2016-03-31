@@ -1,14 +1,16 @@
 
 #Azure Subscription
-$azureSubscriptionName="[your subscription name]"
-#Media Butler Storage Account Name
-$butlerStorageAccountName="[your butler Storage AccountName]"
+$azureSubscriptionName="[your Azure Subscription Name]"
+#Media Butler satge Storage Account Name (To create)
+$butlerStorageAccountName="[Media Butler Stage storage Name]"
 #Media Servives Account Name
-$MediaServiceAccountName="[your AMS account name]"
+$MediaServiceAccountName="[Media Services Account Name]"
 #Media Services Account Key
-$PrimaryMediaServiceAccessKey="[your AMS Primary key]"
+$PrimaryMediaServiceAccessKey="[Media Services Acount Key]"
 #Media Services Storage Account Connection string
-$MediaStorageConn="[your Storage Account connection string]"
+#Example
+#DefaultEndpointsProtocol=https;AccountName=XXXXXXXXXXX;AccountKey=YYYYYYYYYYYYYYYYYYYYYYY
+$MediaStorageConn="[AMS storage account connection string]"
 #[Optional] Send Grid configuration, if you don't use Sendgrig keep empty string
 #Example "{ ""UserName"":""xxxxxxxxxxx@azure.com"", ""Pswd"":""xxxxxxxxxxx"", ""To"":""admin@yourdomain.com"", ""FromName"": ""Butler Media Framework"", ""FromMail"": ""butler@media.com"" }"
 $SendGridStepConfig=""
@@ -16,17 +18,14 @@ $SendGridStepConfig=""
 #Host options: 1- Cloud Services [this will be discontinued] / 2.- WebJob
 $HostOption=2
 #Media Butler Host Location, use the same of Media services and Storage
-$serviceLocation='[your Media Services Region]'
+$serviceLocation='[your AMS region]'
 
+#If you use WebJob fill this variables
+$webSiteName='[Web site Name]';
 
 #If you use Cloud Service fill this varaibles
 #Media Butler Cloud Services Name
 $serviceName="[you Cloud Service Name here]"
-
-
-#If you use WebJob fill this variables
-$webSiteName='[your website name]';
-
 
 #Constant, not change
 #Media Butler Cloud Services Slot
@@ -35,7 +34,8 @@ $slot="Production"
 $package_url="https://mediabutler.blob.core.windows.net/apppublish/20151218%2FMediaButler.AllinOne.cspkg?sr=b&sv=2015-02-21&st=2015-12-18T20%3A22%3A32Z&se=2019-12-18T21%3A22%3A00Z&sp=r&sig=mtKNKRc8A4WdBFoxul6NHrjq6nwlCmPzaKawYY5g3gg%3D"
 #Media Butler Config URL
 $config_Url="http://aka.ms/MediaButlerCscfg"
-$webJobZipURL="https://mediabutler.blob.core.windows.net/apppublish/20160302%2FMediaButlerWebJobHost.zip?sr=b&sv=2015-02-21&st=2016-03-02T23%3A58%3A07Z&se=2019-03-03T00%3A58%3A00Z&sp=r&sig=NxlwlQt%2Bv9EVtPwaK2nfYjsNltG%2BMWEQvaj0A277lao%3D";
+#Media Butler WebHost Package
+$webJobZipURL="http://aka.ms/MediaButlerWebHost";
 
 
 Function InsertButlerConfig($accountName,$accountKey,$tableName, $PartitionKey,$RowKey,$value   )
@@ -153,9 +153,18 @@ try
 {
 
     #1. setup
+    #1.0 Create Stoarge stage Account
+        Select-AzureSubscription -SubscriptionName  $azureSubscriptionName
+        if(Test-AzureName -Storage $butlerStorageAccountName)
+        {
+            #Stage stoarge account name is not available
+            throw 'Deployment Error: Stage stoarge account name is not available'
+        }
+        New-AzureStorageAccount -StorageAccountName $butlerStorageAccountName -Location $serviceLocation -Type Standard_LRS -Description 'Media Butler Satge Storage Account' 
+    
     #1.1 Set-AzureSubscription $azureSubscriptionName
          Set-AzureSubscription -SubscriptionName $azureSubscriptionName  -CurrentStorageAccountName $butlerStorageAccountName
-	     Select-AzureSubscription -SubscriptionName  $azureSubscriptionName
+	     
     #2. Create Media Butler Configuration Table
         $sKey=Get-AzureStorageKey -StorageAccountName $butlerStorageAccountName
         $sExternalConnString='DefaultEndpointsProtocol=https;AccountName=' + $butlerStorageAccountName +';AccountKey='+ $sKey.Primary +''
@@ -214,10 +223,9 @@ try
     if ($HostOption -eq 2)
     {
         #Web jobs
-        #TODO integrate webjobscript
          if (Test-AzureName -Website $webSiteName)
          {
-            Write-Host "Name is not available " + $webSiteName;
+            Write-Host "Deployment Error: WebSite Name is not available " + $webSiteName;
 
         } else
         {
@@ -228,7 +236,14 @@ try
             #set application settings 
             $settings = New-Object Hashtable
             $settings["MediaButler.ConfigurationStorageConnectionString"] = $sExternalConnString
-            Set-AzureWebsite  -Name  $WebSiteName -AppSettings $settings
+            $settings["DeploymentDay"]=get-date -Format d
+            #WebJob Dashboard
+            $connStrings=(
+                @{Name='AzureWebJobsDashboard';Type=3; ConnectionString=$sExternalConnString},
+                @{Name='AzureWebJobsStorage';Type=3; ConnectionString=$sExternalConnString}
+            )
+
+            Set-AzureWebsite  -Name  $WebSiteName -AppSettings $settings -ConnectionStrings $connStrings
 
         }
     }
