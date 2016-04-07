@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -360,13 +361,22 @@ namespace MediaButler.Common
                         AssetDetail.Add("Storage Bytes used", FormatByteSize(theAsset.StorageAccount.BytesUsed));
                         AssetDetail.Add("Storage IsDefault", theAsset.StorageAccount.IsDefault);
 
-                        Hashtable ParentAssets = new Hashtable();
-                        foreach (IAsset p_asset in theAsset.ParentAssets)
+                        try
                         {
-                            ParentAssets.Add(p_asset.Id, p_asset.Name);
-                           
+                            Hashtable ParentAssets = new Hashtable();
+                            foreach (IAsset p_asset in theAsset.ParentAssets)
+                            {
+                                ParentAssets.Add(p_asset.Id, p_asset.Name);
+
+                            }
+                            AssetDetail.Add("ParentAsset", ParentAssets);
                         }
-                        AssetDetail.Add("ParentAsset",ParentAssets);
+                        catch (Exception X)
+                        {
+
+                            Trace.TraceWarning("[AssetInfo] Error ParentAssets:" + X.Message);
+                        }
+                       
 
                         Hashtable ContentKeys = new Hashtable();
                         foreach (IContentKey key in theAsset.ContentKeys)
@@ -514,12 +524,21 @@ namespace MediaButler.Common
                         sb.AppendLine("Storage IsDefault : " + theAsset.StorageAccount.IsDefault);
                         sb.AppendLine("");
 
-                        foreach (IAsset p_asset in theAsset.ParentAssets)
+                        try
                         {
-                            sb.AppendLine("Parent asset Name : " + p_asset.Name);
-                            sb.AppendLine("Parent asset Id   : " + p_asset.Id);
+                            foreach (IAsset p_asset in theAsset.ParentAssets)
+                            {
+                                sb.AppendLine("Parent asset Name : " + p_asset.Name);
+                                sb.AppendLine("Parent asset Id   : " + p_asset.Id);
+                            }
+                            sb.AppendLine("");
                         }
-                        sb.AppendLine("");
+                        catch (Exception X)
+                        {
+
+                            Trace.TraceWarning("[AssetInfo] Error ParentAssets:" + X.Message);
+                        }
+                       
                         foreach (IContentKey key in theAsset.ContentKeys)
                         {
                             sb.AppendLine("Content key       : " + key.Name);

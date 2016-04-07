@@ -236,7 +236,8 @@ try
             #set application settings 
             $settings = New-Object Hashtable
             $settings["MediaButler.ConfigurationStorageConnectionString"] = $sExternalConnString
-            $settings["DeploymentDay"]=get-date -Format d
+            $today=get-date -Format d
+            $settings["DeploymentDay"]=$today.ToString()
             #WebJob Dashboard
             $connStrings=(
                 @{Name='AzureWebJobsDashboard';Type=3; ConnectionString=$sExternalConnString},
@@ -244,6 +245,7 @@ try
             )
 
             Set-AzureWebsite  -Name  $WebSiteName -AppSettings $settings -ConnectionStrings $connStrings
+            Set-AzureWebsite  -Name $WebSiteName -ConnectionStrings $connStrings
 
         }
     }
