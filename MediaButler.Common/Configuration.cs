@@ -181,7 +181,7 @@ namespace MediaButler.Common
             catch (Exception ex)
             {
 
-                throw ex;
+                throw new Exception("Get Configuration Value Error , Check connection string and MBF Stage storage Account: " +  ex.Message);
             }
             return configurationValue;
         }
