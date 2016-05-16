@@ -155,22 +155,26 @@ namespace MediaButler.Common.HostWatcher
         /// <param name="myBlob">this this is blob reference</param>
         /// <returns>true if the name found in the exeption list</returns>
         private static bool checktFilter(IListBlobItem myBlob)
-            {
-            
+        { 
+            bool filterTrigger = false;
             string[] uSegments = myBlob.Uri.Segments;
             string blobName = uSegments[uSegments.Length - 1];
 
             string filterList = MediaButler.Common.Configuration.GetConfigurationValue("FilterPatterns", "MediaButler.Workflow.WorkerRole");
-            
-            string[] list = filterList.Split(',');
 
-            bool filterTrigger = false;
-            foreach (var item in list)
+            //fix whenyou don't have a filter pattern
+            if (!string.IsNullOrEmpty(filterList))
             {
-                if (blobName.IndexOf(item) > -1)
+                string[] list = filterList.Split(',');
+
+                
+                foreach (var item in list)
                 {
-                    filterTrigger = true;
-                    break;
+                    if (blobName.IndexOf(item) > -1)
+                    {
+                        filterTrigger = true;
+                        break;
+                    }
                 }
             }
             return filterTrigger;

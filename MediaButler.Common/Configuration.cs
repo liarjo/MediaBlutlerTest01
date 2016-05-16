@@ -145,10 +145,16 @@ namespace MediaButler.Common
 
                 // Execute the retrieve operation.
                 TableResult retrievedResult = configTable.Execute(retrieveOperation);
-                if (retrievedResult != null)
+                //FIX: If configuration don't exist return "" 
+                //if (retrievedResult != null)
+                if (retrievedResult.HttpStatusCode == 200)
                 {
                     ButlerConfigurationEntity resultEntity = (ButlerConfigurationEntity)retrievedResult.Result;
                     configurationValue = resultEntity.ConfigurationValue;
+                }
+                else
+                {
+                    Trace.TraceWarning("GetConfigurationValue {0} / {1} don't exist",configKey,processKey);
                 }
             }
             catch (Exception ex)
