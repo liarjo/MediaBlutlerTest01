@@ -5,7 +5,10 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaButlerInstall", "MediaButlerInstall", "{34A57BB8-43ED-4FD9-8BFB-F8A9D2ABEBED}"
 	ProjectSection(SolutionItems) = preProject
+		Deployment\json.json = Deployment\json.json
+		Deployment\mbfAzureDeploy.json = Deployment\mbfAzureDeploy.json
 		MediaButlerDeploy.ps1 = MediaButlerDeploy.ps1
+		Deployment\zeroTouchDeploy.ps1 = Deployment\zeroTouchDeploy.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4AE42AE7-1528-4BB3-AAE2-A7558407B58E}"
