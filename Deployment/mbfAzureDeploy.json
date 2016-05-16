@@ -1,0 +1,132 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "farmplanName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "PlanX"
+    },
+    "farmplanSKU": {
+      "type": "string",
+      "allowedValues": [
+        "Free",
+        "Shared",
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Basic"
+    },
+    "farmplanWorkerSize": {
+      "type": "string",
+      "allowedValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "defaultValue": "0"
+    },
+    "MBFStageConn": { "type": "string" },
+    "packageURI": { "type": "string" }
+  },
+  "variables": {
+    "webAppXName": "[concat('webAppX', uniqueString(resourceGroup().id))]"
+   
+  },
+    "resources": [
+        {
+            "name": "[parameters('farmplanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-06-01",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "farmplan"
+            },
+            "properties": {
+                "name": "[parameters('farmplanName')]",
+                "sku": "[parameters('farmplanSKU')]",
+                "workerSize": "[parameters('farmplanWorkerSize')]",
+                "numberOfWorkers": 1
+            }
+        },
+        {
+            "name": "[variables('webAppXName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-08-01",
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('farmplanName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('farmplanName'))]": "Resource",
+                "displayName": "webAppX"
+            },
+          "properties": {
+            "name": "[variables('webAppXName')]",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', parameters('farmplanName'))]",
+            "siteConfig": {
+              "AlwaysOn": true
+            }
+          },
+          "resources": [
+
+            {
+              "name": "appsettings",
+              "type": "config",
+              "apiVersion": "2015-08-01",
+              "dependsOn": [
+                "[concat('Microsoft.Web/sites/', variables('webAppXName'))]"
+              ],
+              "tags": {
+                "displayName": "AppSettings"
+              },
+              "properties": {
+                "MediaButler.ConfigurationStorageConnectionString": "[parameters('MBFStageConn')]"
+              }
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "connectionstrings",
+              "type": "config",
+              "dependsOn": [
+                "[concat('Microsoft.Web/sites/', variables('webAppXName'))]"
+              ],
+              "properties": {
+                "AzureWebJobsDashboard": {
+                  "value": "[parameters('MBFStageConn')]",
+                  "type": "Custom"
+                },
+                "AzureWebJobsStorage": {
+                  "value": "[parameters('MBFStageConn')]",
+                  "type": "Custom"
+                }
+              }
+            },
+            {
+              "name": "MSDeploy",
+              "type": "extensions",
+              "location": "[resourceGroup().location]",
+              "apiVersion": "2015-08-01",
+              "dependsOn": [
+                "[concat('Microsoft.Web/sites/', variables('webAppXName'))]"
+              ],
+              "tags": {
+                "displayName": "webDeploy"
+              },
+              "properties": {
+                "packageUri": "[parameters('packageURI')]",
+                "dbType": "None",
+                "connectionString": "",
+                "setParameters": {
+                  "IIS Web Application Name": "[variables('webAppXName')]"
+                }
+              }
+            }
+
+          ]
+        }
+    ],
+    "outputs": {
+    }
+}
