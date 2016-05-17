@@ -11,9 +11,7 @@ param(
     [string] $MediaServiceStorageKey,
     [Parameter(Mandatory=$true)]
     [string] $SubscriptionName,
-    
     [string] $MyClearTextUsername="",
-   
     [string] $MyClearTextPassword="",
     [Parameter(Mandatory=$true)]
     [string] $appName,
@@ -103,9 +101,11 @@ function createStageStorage()
 }
 
 # 0 Set Constants
-    Set-Variable packageURI "http://aka.ms/mbfpackageURI" -Option ReadOnly -Force
-    Set-Variable TemplateFileURI 'http://aka.ms/mbfTemplateFileURI' -Option ReadOnly -Force
+    Set-Variable packageURI "http://aka.ms/MediaButlerWebApp" -Option ReadOnly -Force
+    Set-Variable TemplateFileURI 'https://mediabutler.blob.core.windows.net/webdeploy/dev%2FmbfAzureDeploy2.json?sr=b&sv=2015-02-21&st=2016-05-17T21%3A29%3A07Z&se=2016-05-17T22%3A29%3A07Z&sp=rwd&sig=4WWmV4A3UjJyN0kKdN5UPt2sKMmsp2dtTtrcnMpNONE%3D' -Option ReadOnly -Force
     Set-Variable TemplateParametersFileURI 'http://aka.ms/mbfTemplateParametersFileURI' -Option ReadOnly -Force
+    Set-Variable webjobURI  "http://aka.ms/mbfhost" -Option ReadOnly -Force
+
 #1. Login With Organizational Account 
     IF([string]::IsNullOrEmpty($MyClearTextUsername)) 
     {
@@ -190,7 +190,9 @@ else
     $OptionalParameters.Add("MBFStageConn",  $MBFStageStorageConnString)
     $OptionalParameters.Add("packageURI",  $packageURI)
     $OptionalParameters.Add("farmplanName",  $webSiteName)
-
+    $OptionalParameters.Add("webjobURI",  $webjobURI)
+    $today=Get-Date -UFormat "%Y%m%d"
+    $OptionalParameters.Add("deployDate",$today)
        
     New-AzureRmResourceGroupDeployment -Name $name -ResourceGroupName $myResourceGroup.ResourceGroupName -TemplateFile $localTemplateFile -TemplateParameterFile $localTemplateParametersFile @OptionalParameters -Force -Verbose
 
