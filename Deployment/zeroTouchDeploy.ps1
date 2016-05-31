@@ -45,14 +45,14 @@ function createProcessTestBasicProcess()
 
     New-AzureStorageContainer -Name $butlerContainerStageName -Context $MBFStageStorageContext -Permission Off
 
-    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $context -value "{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.ButlerProcessRequest"",""ConfigKey"":""""}" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $chain -value $processChain -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "ContainersToScan" -value $butlerContainerStageName -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"
+    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $context -value "{""AssemblyName"":""MediaButler.BaseProcess.dll"",""TypeName"":""MediaButler.BaseProcess.ButlerProcessRequest"",""ConfigKey"":""""}" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey $chain -value $processChain -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "ContainersToScan" -value $butlerContainerStageName -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"
 }
 Function InsertButlerConfig($accountName,$accountKey,$tableName, $PartitionKey,$RowKey,$value   )
 {
   	#Create instance of storage credentials object using account name/key
-	$accountCredentials = New-Object "Microsoft.WindowsAzure.Storage.Auth.StorageCredentials" $accountName, $accountKey.Key1
+	$accountCredentials = New-Object "Microsoft.WindowsAzure.Storage.Auth.StorageCredentials" $accountName, $accountKey
 	#Create instance of CloudStorageAccount object
 	$storageAccount = New-Object "Microsoft.WindowsAzure.Storage.CloudStorageAccount" $accountCredentials, $true
 	#Create table client
@@ -90,19 +90,21 @@ function createStageStorage()
 #Create BIN container
     New-AzureStorageContainer -Name "mediabutlerbin" -Context $MBFStageStorageContext -Permission Off
 # Insert MBF configuration
-    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "IsMultiTask" -value "1" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole" -RowKey "roleconfig" -value "{""MaxCurrentProcess"":1,""SleepDelay"":5,""MaxDequeueCount"":1}" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "MediaServiceAccountName" -value $MediaServiceAccountName -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "MediaStorageConn" -value $MBFStorageConnString -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "PrimaryMediaServiceAccessKey" -value $MediaServiceAccountKey -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $sKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "IsMultiTask" -value "1" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole" -RowKey "roleconfig" -value "{""MaxCurrentProcess"":1,""SleepDelay"":5,""MaxDequeueCount"":1}" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "MediaServiceAccountName" -value $MediaServiceAccountName -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "MediaStorageConn" -value $MBFStorageConnString -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "PrimaryMediaServiceAccessKey" -value $MediaServiceAccountKey -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    #Incoming Filter config Sample
+    InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "FilterPatterns" -value ".test,.mp5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
 }
 
 # 0 Set Constants
     Set-Variable packageURI "http://aka.ms/MediaButlerWebApp" -Option ReadOnly -Force
-    Set-Variable TemplateFileURI 'https://mediabutler.blob.core.windows.net/webdeploy/dev%2FmbfAzureDeploy2.json?sr=b&sv=2015-02-21&st=2016-05-17T21%3A29%3A07Z&se=2016-05-17T22%3A29%3A07Z&sp=rwd&sig=4WWmV4A3UjJyN0kKdN5UPt2sKMmsp2dtTtrcnMpNONE%3D' -Option ReadOnly -Force
+    Set-Variable TemplateFileURI 'https://mediabutler.blob.core.windows.net/webdeploy/dev%2FmbfAzureDeploy2.json?sr=b&sv=2015-02-21&st=2016-05-23T16%3A22%3A54Z&se=2019-05-23T17%3A22%3A00Z&sp=r&sig=QSDg%2BHwAHeVyMJs0V%2BnzmnLuKcj9t18BYIQAqd8gsmU%3D' -Option ReadOnly -Force
     Set-Variable TemplateParametersFileURI 'http://aka.ms/mbfTemplateParametersFileURI' -Option ReadOnly -Force
     Set-Variable webjobURI  "http://aka.ms/mbfhost" -Option ReadOnly -Force
 
@@ -169,9 +171,9 @@ else
 
     #6. Setup MBF Stage Storage Connection
     $sKey= Get-AzureRmStorageAccountKey -ResourceGroupName $myResourceGroup.ResourceGroupName  -StorageAccountName $MBFStageStorageName
-    $MBFStorageKey=$sKey.Key1;
+    $MBFStorageKey=$sKey.Item(0).value
     $MBFStageStorageConnString=$("DefaultEndpointsProtocol=https;AccountName=$MBFStageStorageName;AccountKey=$MBFStorageKey")
-    $MBFStageStorageContext= New-AzureStorageContext -StorageAccountKey $skey.Key1 -StorageAccountName $MBFStageStorageName
+    $MBFStageStorageContext= New-AzureStorageContext -StorageAccountKey $MBFStorageKey -StorageAccountName $MBFStageStorageName
 
     #7. Create MBF Stage Storage 
     createStageStorage
@@ -202,7 +204,7 @@ else
 
     #10. ENd SCRIPT
     Write-Host ("Stage Storaga Account Name {0}" -f $MBFStageStorageName )
-    Write-Host ("Stage Storage Account Key {0}" -f $sKey.Key1)
+    Write-Host ("Stage Storage Account Key {0}" -f $MBFStorageKey)
     Write-Host ("WebSite Plan Name {0}" -f $webSiteName)
 
 }
