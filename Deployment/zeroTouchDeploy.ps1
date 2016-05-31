@@ -103,8 +103,8 @@ function createStageStorage()
 }
 
 # 0 Set Constants
-    Set-Variable packageURI "http://aka.ms/MediaButlerWebApp" -Option ReadOnly -Force
-    Set-Variable TemplateFileURI 'https://mediabutler.blob.core.windows.net/webdeploy/dev%2FmbfAzureDeploy2.json?sr=b&sv=2015-02-21&st=2016-05-23T16%3A22%3A54Z&se=2019-05-23T17%3A22%3A00Z&sp=r&sig=QSDg%2BHwAHeVyMJs0V%2BnzmnLuKcj9t18BYIQAqd8gsmU%3D' -Option ReadOnly -Force
+    Set-Variable packageURI "http://aka.ms/mbfwebapp" -Option ReadOnly -Force
+    Set-Variable TemplateFileURI 'https://aka.ms/mbftemplatefileuri' -Option ReadOnly -Force
     Set-Variable TemplateParametersFileURI 'http://aka.ms/mbfTemplateParametersFileURI' -Option ReadOnly -Force
     Set-Variable webjobURI  "http://aka.ms/mbfhost" -Option ReadOnly -Force
 
