@@ -33,38 +33,46 @@ namespace MediaButler.Common.HostWatcher
 
             foreach (var b in blobList)
             {
-                // is it a simple file
-                if (isSimpleFile(b))
+                if (!checktFilter(b))
                 {
-                    // 1. move the file to processing (rename)
-                    string newName = AdjustPath(b, Configuration.DirectoryProcessing);
-                    RenameBlobWithinContainer(cbc, ExtractBlobPath(b), newName);
-                    //TODO: check for copy failure
-                    var newBlobUri = cbc.GetBlockBlobReference(newName).Uri;
 
-                    // 1. have jobcreator create the job for this (now renamed) file
-                    var j = JobManager.CreateSimpleJob(newBlobUri);
+                    // is it a simple file
+                    if (isSimpleFile(b))
+                    {
+                        // 1. move the file to processing (rename)
+                        string newName = AdjustPath(b, Configuration.DirectoryProcessing);
+                        RenameBlobWithinContainer(cbc, ExtractBlobPath(b), newName);
+                        //TODO: check for copy failure
+                        var newBlobUri = cbc.GetBlockBlobReference(newName).Uri;
 
-                    Trace.TraceInformation(String.Format("Submitting job: {0} at {1:o} (Simple)", j.JobId, DateTime.UtcNow));
+                        // 1. have jobcreator create the job for this (now renamed) file
+                        var j = JobManager.CreateSimpleJob(newBlobUri);
 
-                    // 3. submit the job
-                    //JobManager.Submit(j);
-                    JobManager.Submit(j,_storageAccountString);
+                        Trace.TraceInformation(String.Format("Submitting job: {0} at {1:o} (Simple)", j.JobId, DateTime.UtcNow));
+
+                        // 3. submit the job
+                        //JobManager.Submit(j);
+                        JobManager.Submit(j, _storageAccountString);
+                    }
+                    else
+                    {
+                        // it's one of the files for a specific job, so collect them for now
+
+                        // 1. extract GUID
+                        var parts = b.Uri.ToString().Split('/');
+                        var guidStr = parts[parts.Length - 2];
+                        var jobID = new Guid(guidStr);
+
+                        if (!filesByJobID.ContainsKey(jobID))
+                        {
+                            filesByJobID.Add(jobID, new List<IListBlobItem>(10));
+                        }
+                        filesByJobID[jobID].Add(b);
+                    }
                 }
                 else
                 {
-                    // it's one of the files for a specific job, so collect them for now
-
-                    // 1. extract GUID
-                    var parts = b.Uri.ToString().Split('/');
-                    var guidStr = parts[parts.Length - 2];
-                    var jobID = new Guid(guidStr);
-
-                    if (!filesByJobID.ContainsKey(jobID))
-                    {
-                        filesByJobID.Add(jobID, new List<IListBlobItem>(10));
-                    }
-                    filesByJobID[jobID].Add(b);
+                    Trace.TraceInformation("Filtered file " + b.Uri.AbsolutePath);
                 }
             }
 
@@ -140,8 +148,40 @@ namespace MediaButler.Common.HostWatcher
                 JobManager.Submit(job,_storageAccountString);
             }
         }
+        /// <summary>
+        /// check for specific file names that are not media files that needs to be processed.  This file types are specific to Aspera File upload process. return
+        /// true if found in the exemtion list.  
+        /// </summary>
+        /// <param name="myBlob">this this is blob reference</param>
+        /// <returns>true if the name found in the exeption list</returns>
+        private static bool checktFilter(IListBlobItem myBlob)
+        { 
+            bool filterTrigger = false;
+            string[] uSegments = myBlob.Uri.Segments;
+            string blobName = uSegments[uSegments.Length - 1];
 
-        private const string parentSuffix = "/" + Configuration.DirectoryInbound + "/";
+            string filterList = MediaButler.Common.Configuration.GetConfigurationValue("FilterPatterns", "MediaButler.Workflow.WorkerRole");
+
+            //fix whenyou don't have a filter pattern
+            if (!string.IsNullOrEmpty(filterList))
+            {
+                string[] list = filterList.Split(',');
+
+                
+                foreach (var item in list)
+                {
+                    if (blobName.IndexOf(item) > -1)
+                    {
+                        filterTrigger = true;
+                        break;
+                    }
+                }
+            }
+            return filterTrigger;
+             
+    }
+
+    private const string parentSuffix = "/" + Configuration.DirectoryInbound + "/";
 
         /// <summary>
         /// Is it a standalone file?  Versus a subdirectory?
