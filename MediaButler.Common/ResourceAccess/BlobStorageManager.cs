@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -114,6 +115,16 @@ namespace MediaButler.Common.ResourceAccess
                 return aux;
         }
 
-       
+        public string GetBlobSasUri(string blobUri,int hours)
+        {
+            var blob = blobClient.GetBlobReferenceFromServer(new Uri(blobUri));
+            SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy();
+            sasConstraints.SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5);
+            sasConstraints.SharedAccessExpiryTime = DateTime.UtcNow.AddHours(hours);
+            sasConstraints.Permissions = SharedAccessBlobPermissions.Read;
+            string sasBlobToken = blob.GetSharedAccessSignature(sasConstraints);
+            return blob.Uri + sasBlobToken;
+        }
+
     }
 }

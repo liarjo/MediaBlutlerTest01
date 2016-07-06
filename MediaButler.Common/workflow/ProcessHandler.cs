@@ -118,20 +118,38 @@ namespace MediaButler.Common.workflow
                     //try to download from storage
                     try
                     {
-                        
+
                         CloudStorageAccount storageAccount = CloudStorageAccount.Parse(myProcessConfigConn);
                         CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                         CloudBlobContainer container = blobClient.GetContainerReference("mediabutlerbin");
-                        CloudBlockBlob blockBlob = container.GetBlockBlobReference(item.AssemblyName);
-                        using (var fileStream = System.IO.File.OpenWrite(@".\" + item.AssemblyName))
+                        //CloudBlockBlob blockBlob = container.GetBlockBlobReference(item.AssemblyName);
+                        //using (var fileStream = System.IO.File.OpenWrite(@".\" + item.AssemblyName))
+                        //{
+                        //    blockBlob.DownloadToStream(fileStream);
+                        //} 
+                        //TODO: fix this is DLL exis and is it on use
+                        foreach (IListBlobItem dll in container.ListBlobs(null, false))
                         {
-                            blockBlob.DownloadToStream(fileStream);
-                        } 
+
+                            Uri myUri = dll.Uri;
+                            int seg = myUri.Segments.Length - 1;
+                            string name = myUri.Segments[seg];
+                            CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
+                            using (var fileStream = System.IO.File.OpenWrite(@".\" + name))
+                            {
+                                blockBlob.DownloadToStream(fileStream);
+                            }
+
+                        }
+                        if (!File.Exists(item.AssemblyName))
+                        {
+                            throw new Exception(item.AssemblyName + " don't exist");
+                        }
                     }
                     catch (Exception X)
                     {
-                        string txt = string.Format("[{0}] Error BuildChain  Assembly {1} error: {2}", this.GetType().FullName,item.AssemblyName, X.Message);
-                         
+                        string txt = string.Format("[{0}] Error BuildChain  Assembly {1} error: {2}", this.GetType().FullName, item.AssemblyName, X.Message);
+
                         Trace.TraceError(txt);
                         throw X;
                     }
