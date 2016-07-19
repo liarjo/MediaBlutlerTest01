@@ -8,7 +8,7 @@
 <p>Media Butler framework is a VOD workflow automation framework for Azure Media Services. It supports create different workflow using configuration, combining pre-defined steps or using customs steps create by code. The basic workflow implementation is a folder watch folder but you can automate more complex scenarios like AMS replication cross regions.</p>
 <p>Media butler is composed by 2 workers process: Watcher and Workflow role. First one implements “watch folder” pattern on Azure Blob Storage. It takes the new files and submit it to Workflow Manager by ButlerSend Queue. When a new job is summited, this process moves the original files form Incoming folder to Processing. Once the process finish, success or fail, this process receives a message and process it. If the process was success, it will move the original date from Processing to Success folder. In the fail case, will move to Fail folder.</p>
 <p>Workflow Manager is Media Butler's core, it is the workflow coordinator. It receives jobs from ButlerSend queue, and process it following the process definition in ButlerConfiguration table. This role, follow and control the process and execute each step. When the process finish, it sends the notification as is configured.</p>
-<p><img src="media/image1.JPG" width="624" height="384" /></p>
+<p><img src="ResourceGroupComponents.JPG" width="624" height="384" /></p>
 <h2 id="how-to-deploy-media-butler-framework">How to deploy Media Butler Framework</h2>
 <h3 id="setup-pre-requisites">Setup pre requisites</h3>
 <ol style="list-style-type: decimal">
