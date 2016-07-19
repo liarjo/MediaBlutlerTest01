@@ -8,7 +8,7 @@
 <p>Media Butler framework is a VOD workflow automation framework for Azure Media Services. It supports create different workflow using configuration, combining pre-defined steps or using customs steps create by code. The basic workflow implementation is a folder watch folder but you can automate more complex scenarios like AMS replication cross regions.</p>
 <p>Media butler is composed by 2 workers process: Watcher and Workflow role. First one implements “watch folder” pattern on Azure Blob Storage. It takes the new files and submit it to Workflow Manager by ButlerSend Queue. When a new job is summited, this process moves the original files form Incoming folder to Processing. Once the process finish, success or fail, this process receives a message and process it. If the process was success, it will move the original date from Processing to Success folder. In the fail case, will move to Fail folder.</p>
 <p>Workflow Manager is Media Butler's core, it is the workflow coordinator. It receives jobs from ButlerSend queue, and process it following the process definition in ButlerConfiguration table. This role, follow and control the process and execute each step. When the process finish, it sends the notification as is configured.</p>
-<p><img src="ResourceGroupComponents.JPG" width="624" height="384" /></p>
+<p><img src="ButlerReadmeImg.JPG" width="624" height="384" /></p>
 <h2 id="how-to-deploy-media-butler-framework">How to deploy Media Butler Framework</h2>
 <h3 id="setup-pre-requisites">Setup pre requisites</h3>
 <ol style="list-style-type: decimal">
@@ -17,7 +17,7 @@
 <li><p>Azure Media Services Storage Account Name and Key</p></li>
 </ol>
 <h3 id="deploy-media-butler-on-a-web-job">Deploy Media Butler on a Web JOB</h3>
-<p>Media Butler Framework (MBF) has a deployment PowerShell script. This script deploys MBF in Azure Web Job host always running. The script will create:</p>
+<p>Media Butler Framework (MBF) has a deployment PowerShell <a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/Deployment/zeroTouchDeploy.ps1">script</a>. This script deploys MBF in Azure Web Job host always running. The script will create:</p>
 <ol style="list-style-type: lower-alpha">
 <li><p>MBF resource group</p></li>
 <li><p>Staging storage account</p></li>
@@ -51,7 +51,7 @@
 <p>Stage Storage Account Key XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx==</p>
 <p>WebSite Plan Name mbfwebjobhostdeploytest81</p>
 <p>The resource group will see as this</p>
-<p><img src="media/image2.JPG" width="624" height="306" /></p>
+<p><img src="ResourceGroupComponents.JPG" width="624" height="306" /></p>
 <p>This is the stage storage account and you will use to upload the new videos there.</p>
 <h3 id="test-the-deployment-process">Test the deployment process</h3>
 <p>To test this deployment, you can follow this step by step:</p>
