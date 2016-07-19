@@ -20,8 +20,8 @@ namespace MediaButlerWebJobHost
         private static string GetConnString()
         {
 
-
-            return System.Configuration.ConfigurationSettings.AppSettings["MediaButler.ConfigurationStorageConnectionString"];
+            
+            return System.Configuration.ConfigurationManager.AppSettings["MediaButler.ConfigurationStorageConnectionString"];
         }
         static void Main()
         {

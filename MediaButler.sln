@@ -35,13 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaButlerHosts", "MediaBu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Common", "MediaButler.Common\MediaButler.Common.csproj", "{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Watcher", "MediaButler.Watcher\MediaButler.Watcher.csproj", "{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.Workflow", "MediaButler.Workflow\MediaButler.Workflow.csproj", "{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.BaseProcess", "MediaButler.BaseProcess\MediaButler.BaseProcess.csproj", "{3D7A2C36-62C3-4303-99A5-8ED7454708FA}"
-EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "MediaButler.AllinOne", "MediaButler.AllinOne\MediaButler.AllinOne.ccproj", "{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButlerWebJobHost", "MediaButlerWebJobHost\MediaButlerWebJobHost.csproj", "{FE430805-7A07-45D4-BD47-1560C42FAD83}"
 EndProject
@@ -55,22 +49,10 @@ Global
 		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{569BF3BD-00FC-4D58-831E-50FAD2C22CDA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D7A2C36-62C3-4303-99A5-8ED7454708FA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -80,9 +62,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{95642EBC-0C45-4E6B-80E6-68FD95B4D1CC} = {065927B4-E021-4A1D-BDD8-F5319580D478}
-		{4EFFF6FD-F5F2-4ED8-9A6E-C7EFAA05393D} = {065927B4-E021-4A1D-BDD8-F5319580D478}
-		{48BD2B05-17B2-41A5-9A0E-89243F9AAEC2} = {065927B4-E021-4A1D-BDD8-F5319580D478}
 		{FE430805-7A07-45D4-BD47-1560C42FAD83} = {065927B4-E021-4A1D-BDD8-F5319580D478}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
