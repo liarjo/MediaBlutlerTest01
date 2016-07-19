@@ -63,6 +63,9 @@
 <li><p>Now, you could go to the Media Butler Storage, and review the output info in the file testbasicprocess/Completed/[your MP4 video Name].[date and time].log</p></li>
 </ol>
 <h3 id="more-information">More information</h3>
+<ol style="list-style-type: decimal">
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/DolbySample.md">Automation of Delivering Premium Audio Experiences with Dolby Digital Plus in Azure</a></li>
+</ol>
 <p>&gt;</p>
 </body>
 </html>
