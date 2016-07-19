@@ -63,9 +63,12 @@
 <li><p>Now, you could go to the Media Butler Storage, and review the output info in the file testbasicprocess/Completed/[your MP4 video Name].[date and time].log</p></li>
 </ol>
 <h3 id="more-information">More information</h3>
+
 <ol style="list-style-type: decimal">
-<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/DolbySample.md">Automation of Delivering Premium Audio Experiences with Dolby Digital Plus in Azure</a></li>
-</ol>
+<li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/DolbySample.md">Automation of Delivering Premium Audio Experiences with Dolby Digital Plus in Azure</a></p></li>
+<li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/PremiunEncoder.md">Automation of Premium Encoding in Azure Media Services with Media Butler</a></p></li>
+<li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/SampleClipping.md">Media Butler Sample Clipping</a></p></li>
+</ol>
 <p>&gt;</p>
 </body>
 </html>
