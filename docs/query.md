@@ -4,7 +4,7 @@
 
 </head>
 <body>
-<h2 id="introduction">Introduction</h2>
+<h2 id="introduction">How To Query Process Status</h2>
 <p>Any workflow manager needs to have a way to see an instance status or error messages to provide this information to the user or any other system.</p>
 <p>All process Instance status are store on “ButlerWorkflowStatus” Azure Table with this schema:</p>
 <ul>
