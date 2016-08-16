@@ -72,7 +72,13 @@ public class sampleCustomStep : MediaButler.WorkflowStep.ICustomStepExecution
 
 }]
 </pre>
-
+<p> Now, the custom step configuration</p>
+<pre>
+{
+ "AssemblyName": "HelloWordStep.dll",
+ "TypeName": "HelloWordStep.sampleCustomStep"
+}
+</pre>
 <p><strong>Assemblyname</strong> is the DLL path and name, on production the DLL will be on the same folder of the host for this reason you don’t need to add the path. On developer environment you can add full path to your DLL.</p>
 <p><strong>TypeName</strong> is the class name who implement your custom step.</p>
 <h2 id="test-the-custom-step">3. Test the custom step</h2>
