@@ -12,9 +12,9 @@
 <p>Media Butler Framework (MBF) support create new media workflow using all steps already included on the framework or by create new custom step using code. This tutorial explains how to create a new step and include it on the media workflow.</p>
 <h2 id="create-a-new-step">1. Create a new step</h2>
 <p>To create a new step you may create a new Class Library project as appear on the image.</p>
-<p><img src="media/image1.png" width="624" height="433" /></p>
+<p><img src="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/howto_customStep1.JPG" width="624" height="433" /></p>
 <p>Next, you need to add a reference to <strong>MediaButler.WorkflowStep.dll</strong> to have access to required interfaces. The interface to implement is <strong>ICustomStepExecution</strong>.</p>
-<p><img src="media/image2.png" width="624" height="433" /></p>
+<p><img src="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/howto_customStep2.JPG" width="624" height="433" /></p>
 <p><strong>ICustomStepExecution</strong> interface defines execute method, it is step’s custom logic container.</p>
 <p>This sample code writes a message on the process instance metadata.</p>
 <p>public class sampleCustomStep: MediaButler.WorkflowStep.ICustomStepExecution</p>
