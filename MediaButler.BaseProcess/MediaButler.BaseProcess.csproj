@@ -122,6 +122,7 @@
     <Compile Include="Base\DeleteCurrentAssetStep.cs" />
     <Compile Include="Base\DeleteOriginalBlobStep.cs" />
     <Compile Include="Base\SetupAMSAccountStep.cs" />
+    <Compile Include="Control\MediaButlerCustomStep.cs" />
     <Compile Include="miscellaneous\ListAssetFilesOnRequestLogStep.cs" />
     <Compile Include="miscellaneous\SelectAssetByProcessIDStep.cs" />
     <Compile Include="PremiunEncoder\PremiunConfig.cs" />
@@ -161,6 +162,10 @@
     <ProjectReference Include="..\MediaButler.Common\MediaButler.Common.csproj">
       <Project>{569bf3bd-00fc-4d58-831e-50fad2c22cda}</Project>
       <Name>MediaButler.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MediaButler.WorkflowStep\MediaButler.WorkflowStep.csproj">
+      <Project>{4a991827-1cf3-43ca-9809-af5131d5e265}</Project>
+      <Name>MediaButler.WorkflowStep</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

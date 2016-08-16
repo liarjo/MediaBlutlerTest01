@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.BaseProcess", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButlerWebJobHost", "MediaButlerWebJobHost\MediaButlerWebJobHost.csproj", "{FE430805-7A07-45D4-BD47-1560C42FAD83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.WorkflowStep", "MediaButler.WorkflowStep\MediaButler.WorkflowStep.csproj", "{4A991827-1CF3-43CA-9809-AF5131D5E265}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE430805-7A07-45D4-BD47-1560C42FAD83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A991827-1CF3-43CA-9809-AF5131D5E265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A991827-1CF3-43CA-9809-AF5131D5E265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A991827-1CF3-43CA-9809-AF5131D5E265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A991827-1CF3-43CA-9809-AF5131D5E265}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

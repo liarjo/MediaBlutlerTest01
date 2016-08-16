@@ -126,5 +126,23 @@ namespace MediaButler.Common.ResourceAccess
             return blob.Uri + sasBlobToken;
         }
 
+        public void parkingNewBinaries()
+        {
+            CloudBlobContainer container = blobClient.GetContainerReference("mediabutlerbin");
+            foreach (IListBlobItem dll in container.ListBlobs(null, false))
+            {
+                Uri myUri = dll.Uri;
+                int seg = myUri.Segments.Length - 1;
+                string name = myUri.Segments[seg];
+                if (!File.Exists(@".\" + name))
+                {
+                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
+                    using (var fileStream = System.IO.File.OpenWrite(@".\" + name))
+                    {
+                        blockBlob.DownloadToStream(fileStream);
+                    }
+                }
+            }
+        }
     }
 }
