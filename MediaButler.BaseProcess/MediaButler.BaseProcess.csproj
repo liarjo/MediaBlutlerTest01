@@ -121,6 +121,7 @@
     <Compile Include="Base\CreateSasLocatorStep.cs" />
     <Compile Include="Base\DeleteCurrentAssetStep.cs" />
     <Compile Include="Base\DeleteOriginalBlobStep.cs" />
+    <Compile Include="Base\httpNotificationStep.cs" />
     <Compile Include="Base\SetupAMSAccountStep.cs" />
     <Compile Include="Control\MediaButlerCustomStep.cs" />
     <Compile Include="miscellaneous\ListAssetFilesOnRequestLogStep.cs" />
