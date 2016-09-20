@@ -24,7 +24,12 @@ namespace MediaButler.BaseProcess
                 , TimeSpan.FromDays(daysForWhichStreamingUrlIsActive)
                 , AccessPermissions.Read);
 
-            _MediaServiceContext.Locators.CreateLocator(LocatorType.Sas, myAsset, accessPolicy, DateTime.UtcNow.AddMinutes(-5));
+            var locator=   _MediaServiceContext.Locators.CreateLocator(LocatorType.Sas, myAsset, accessPolicy, DateTime.UtcNow.AddMinutes(-5));
+            //Add to metadata Locator path
+            if (!myRequest.MetaData.ContainsKey("sasPathurl"))
+            {
+                myRequest.MetaData.Add("sasPathurl", locator.Path);
+            }
         }
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {

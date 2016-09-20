@@ -29,8 +29,14 @@ namespace MediaButler.BaseProcess
 
             assetFile = assetFiles.Where(f => f.Name.ToLower().EndsWith(".ism")).FirstOrDefault();
             locator = _MediaServiceContext.Locators.CreateLocator(LocatorType.OnDemandOrigin, outputAsset, accessPolicy, DateTime.UtcNow.AddMinutes(-5));
+            //Add Smooth URL to Metadata
+            if (!myRequest.MetaData.ContainsKey("smoothurl"))
+            {
+                myRequest.MetaData.Add("smoothurl", locator.Path + assetFile.Name + "/manifest");
+            }
             return locator;
         }
+        
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
