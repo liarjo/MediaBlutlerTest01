@@ -71,6 +71,7 @@
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/customStep.md">Media Butler How to extend with custom step</a></p></li>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/query.md">How To Query Media Butler Process Status</a></p></li>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/watchfolder.md">How to trigger Media Butler process using a specific process instance id</a></p></li>
+<li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpCallback.md">How to use HTTP callback notification</a>
 
 </ol>
 
