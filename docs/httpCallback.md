@@ -189,3 +189,5 @@ instance ID as a sample.
 >RequestUri=https://\[myAzureFunction\].azurewebsites.net/api/HttpTriggerCSharp1?code=XXXXXXXXXXXXXXXXXX&processInstanceId=**d6314efd-276a-4162-8227-9ddca0c01ee5**
 
 >2016-09-07T21:51:45.523 Function completed (Success,Id=86dcbdce-9102-43d8-a186-b496c62503e0)
+
+Update: you should restart Web Role after add a new process.
