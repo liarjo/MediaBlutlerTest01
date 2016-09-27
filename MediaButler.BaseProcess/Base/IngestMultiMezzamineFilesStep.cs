@@ -87,7 +87,8 @@ namespace MediaButler.BaseProcess
             CloudBlobClient MezzamineClient = MezzamineStorageCount.CreateCloudBlobClient();
             CloudBlobContainer MezzamineContainer = MezzamineClient.GetContainerReference(myRequest.ButlerRequest.WorkflowName);
 
-            foreach (string  urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles)
+            //Filter Ingest only MP4
+            foreach (string  urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles.Where(mf=>mf.ToLower().EndsWith(".mp4")))
             {
                 Uri xFile = new Uri(urlMezzamineFile);
                 int segmentIndex = xFile.Segments.Count() - 1;

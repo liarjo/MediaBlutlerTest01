@@ -43,14 +43,30 @@ namespace MediaButler.Common.ResourceAccess
             try
             {
                 //Explicit TOStirng
-                aux = data.SelectToken(key).ToString();
-            }
-            catch (Exception)
-            {
+                aux = data[key].ToString();
 
-              
+            }
+            catch (Exception X)
+            {
+                Trace.TraceWarning("Configuration key " + key + "was not availale. " +  X.Message);
             }
             return aux;
         }
+
+        public JToken ReadArray(string key)
+        {
+            JToken aux = null;
+            try
+            {
+                aux = (JArray)data[key];
+
+            }
+            catch (Exception X)
+            {
+                Trace.TraceWarning("Configuration key " + key + "was not availale. " + X.Message);
+            }
+            return aux;
+        }
+    
     }
 }

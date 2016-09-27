@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +20,6 @@ namespace MediaButler.Common.ResourceAccess
         /// </summary>
         /// <returns></returns>
         string GetJason();
+        JToken ReadArray(string key);
     }
 }

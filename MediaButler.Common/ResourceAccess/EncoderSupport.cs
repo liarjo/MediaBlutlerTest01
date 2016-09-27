@@ -80,28 +80,39 @@ namespace MediaButler.Common.ResourceAccess
         public void WaitJobFinish(string jobId)
         {
             IJob myJob = GetJob(jobId);
-            //se utiliza el siguiente codigo para mostrar avance en porcentaje, como en el portal
-            double avance = 0;
-            //TODO: imporve wating method
+            double[] myJobProgress = new double[myJob.Tasks.Count];
+            string message = "";
+
             while ((myJob.State != JobState.Finished) && (myJob.State != JobState.Canceled) && (myJob.State != JobState.Error))
             {
                 if (myJob.State == JobState.Processing)
                 {
-                    if (avance != (myJob.Tasks[0].Progress / 100))
+                    for (int i = 0; i < myJob.Tasks.Count; i++)
                     {
-                        avance = myJob.Tasks[0].Progress / 100;
-                        string message = "job " + myJob.Id + " Percent complete:" + avance.ToString("#0.##%");
-                        Trace.TraceInformation(message);
-
-                        if (JobUpdate != null)
+                       if (myJobProgress[i]!= (myJob.Tasks[i].Progress / 100))
                         {
+                            myJobProgress[i]= myJob.Tasks[i].Progress / 100;
+                            
+                            //Calc Job Advance
+                            double jobProgress = 0;
 
-                            JobUpdate(message, null);
+                            for (int id = 0; id < myJobProgress.Count(); id++)
+                            {
+                                jobProgress += myJobProgress[id];
+                                message = string.Format("job {0} Task {1} Progress {2}", myJob.Id, myJob.Tasks[id].Name, myJobProgress[id].ToString("#0.##%"));
+                                Trace.TraceInformation(message);
+                            }
+                           
+                            jobProgress = jobProgress /  myJob.Tasks.Count();
+
+                            message = string.Format("job {0} Percent complete {1}", myJob.Id,jobProgress.ToString("#0.##%"));
+                            if (JobUpdate != null)
+                            {
+                                JobUpdate(message, null);
+                            }
                         }
                     }
-
                 }
-
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 myJob.Refresh();
             }
@@ -117,14 +128,14 @@ namespace MediaButler.Common.ResourceAccess
                 case JobState.Finished:
                     if (JobUpdate != null)
                     {
-                        string message = "job " + myJob.Id + " Percent complete: 100%";
+                         message = "job " + myJob.Id + " Percent complete: 100%";
                         JobUpdate(message, null);
                     }
                     break;
                 case JobState.Error:
                     if (JobUpdate != null)
                     {
-                        string message = "job " + myJob.Id + " Percent complete: -1%";
+                         message = "job " + myJob.Id + " Percent complete: -1%";
                         JobUpdate(message, null);
                     }
                     if (OnJobError != null)
