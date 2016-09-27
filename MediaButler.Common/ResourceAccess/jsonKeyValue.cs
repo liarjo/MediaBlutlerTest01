@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,11 +16,16 @@ namespace MediaButler.Common.ResourceAccess
         {
             try
             {
-                data = JObject.Parse(jsonTxt);
+                //Check if json is well formed
+                if (jsonTxt[0]!= '{')
+                {
+                    jsonTxt = jsonTxt.Substring(1, jsonTxt.Length - 1);
+                }
+                  data = JObject.Parse(jsonTxt);
             }
             catch (Exception X)
             {
-                Trace.TraceError("jsonKeyValue error: " + jsonTxt + " is not valid json file");
+                Trace.TraceError("jsonKeyValue error: " + jsonTxt + " is not valid json file. Error  " + X.Message);
                 //throw X;
             }
             
@@ -36,7 +42,8 @@ namespace MediaButler.Common.ResourceAccess
             string aux="";
             try
             {
-                aux = data.SelectToken(key);
+                //Explicit TOStirng
+                aux = data.SelectToken(key).ToString();
             }
             catch (Exception)
             {
