@@ -75,6 +75,9 @@ namespace MediaButler.BaseProcess.Control
             try
             {
                 myCustomStepExecution.execute(myCustomRequest);
+
+                //UPdate myRequest
+                myRequest.AssetId = myCustomRequest.AssetId;
             }
             catch (Exception X)
             {
