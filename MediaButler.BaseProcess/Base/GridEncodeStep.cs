@@ -76,6 +76,11 @@ namespace MediaButler.BaseProcess
                 foreach (var profile in Xlist)
                 {
                     string url = myRequest.ButlerRequest.MezzanineFiles.Where(f => f.ToLower().EndsWith(profile.ToString().ToLower())).FirstOrDefault();
+                    if (url==null)
+                    {
+                        string errorMensage = string.Format("[{0}] Process Instance ID {2} Error loading encoding profile from file package {1}",myRequest.ProcessTypeId,profile.ToString(),myRequest.ProcessInstanceId);
+                        throw new Exception(errorMensage);
+                    }
                     aux[profileId] = blobManager.ReadTextBlob(url) ;
                     profileId += 1;
                 }
