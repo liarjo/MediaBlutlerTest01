@@ -74,6 +74,13 @@
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpCallback.md">How to use HTTP callback notification</a>
 </ol>
 
+## Reporting issues and feedback
 
+If you encounter any bugs with the tool please file an issue in the Issues
+section of our GitHub repo.
+
+## License
+
+MIT
 </body>
 </html>
