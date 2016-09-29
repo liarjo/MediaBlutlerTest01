@@ -197,7 +197,8 @@ namespace MediaButler.Common.Host
                     }
                     else
                     {
-                        txt = string.Format("[{0}] has not a new message. # current process {1}", this.GetType().FullName, myProcessHandler.CurrentProcessRunning);
+                        DateTime x=System.IO.File.GetCreationTime(@".\MediaButler.Common.dll");
+                        txt = string.Format("[{0}][{2}] has not a new message. # current process {1}", this.GetType().FullName, myProcessHandler.CurrentProcessRunning,x.ToString());
                         Trace.TraceInformation(txt);
                     }
                 }
