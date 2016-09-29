@@ -12,6 +12,14 @@ using Microsoft.Azure;
 
 namespace MediaButler.Common
 {
+    public class DotControlProperty
+    {
+        public static string GridEncodeStepEncodeConfigList = "GridEncodeStep.encodeConfigList";
+        public static string GridEncodeStepMediaProcessorName = "GridEncodeStep.MediaProcessorName";
+        public static string httpNotificationStepBaseUrl = "baseUrl";
+        public static string IngestMultiMezzamineFilesPrimaryFile = "myPrimaryFile";
+        public static string StandardEncodigProfileName = "encodigProfile";
+    }
     public class Configuration
     {
         private const string configurationTableName = "ButlerConfiguration";

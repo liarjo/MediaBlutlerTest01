@@ -181,7 +181,7 @@ namespace MediaButler.BaseProcess
                 if (!string.IsNullOrEmpty(jsonControl))
                 {
                     IjsonKeyValue myControl = new jsonKeyValue(jsonControl);
-                    myPrimaryFile = myControl.Read("myPrimaryFile");
+                    myPrimaryFile = myControl.Read(DotControlProperty.IngestMultiMezzamineFilesPrimaryFile);
                 }
             }
             

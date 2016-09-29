@@ -43,7 +43,7 @@ namespace MediaButler.BaseProcess
                 IjsonKeyValue x = new jsonKeyValue(jsonData);
                 try
                 {
-                    encodeProfileName = x.Read("encodigProfile").ToLower();
+                    encodeProfileName = x.Read(DotControlProperty.StandardEncodigProfileName).ToLower();
                 }
                 catch (Exception)
                 {

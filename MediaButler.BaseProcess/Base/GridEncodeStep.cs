@@ -67,10 +67,10 @@ namespace MediaButler.BaseProcess
         {
             string[] aux;
            
-            if (!string.IsNullOrEmpty( dotControlData.Read("GridEncodeStep.encodeConfigList") ))
+            if (!string.IsNullOrEmpty( dotControlData.Read(DotControlProperty.GridEncodeStepEncodeConfigList) ))
             {
                 //Definition encoders on instance level 
-                var Xlist = dotControlData.ReadArray("GridEncodeStep.encodeConfigList").ToArray();
+                var Xlist = dotControlData.ReadArray(DotControlProperty.GridEncodeStepEncodeConfigList).ToArray();
                 aux = new string[Xlist.Count()];
                 int profileId = 0;
                 foreach (var profile in Xlist)
@@ -115,7 +115,7 @@ namespace MediaButler.BaseProcess
 
             //2. Setup Names
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-            string MediaProcessorName = dotControlData.Read("GridEncodeStep.MediaProcessorName");
+            string MediaProcessorName = dotControlData.Read(DotControlProperty.GridEncodeStepMediaProcessorName);
             if (string.IsNullOrEmpty(MediaProcessorName))
             {
                 MediaProcessorName = "Media Encoder Standard";

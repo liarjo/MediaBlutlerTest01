@@ -29,7 +29,7 @@ namespace MediaButler.BaseProcess
             string jsonControlFile = blobManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
             IjsonKeyValue stepConfig = new jsonKeyValue(jsonControlFile);
             //CallBack URL with token and all info except Transaction ID
-            string url = stepConfig.Read("baseUrl");
+            string url = stepConfig.Read(MediaButler.Common.DotControlProperty.httpNotificationStepBaseUrl);
             //Add process Instance ID as value parameter on the URL
             var httpRequest = WebRequest.Create(url + myRequest.ProcessInstanceId);
 
