@@ -11,5 +11,6 @@ namespace MediaButler.Common.ResourceAccess
         ProcessSnapShot readProcessSanpShot(string processName, string processId);
         string GetBlobSasUri(string blobUri,int hours);
         void parkingNewBinaries();
+        IjsonKeyValue GetDotControlData(string URL);
     }
 }

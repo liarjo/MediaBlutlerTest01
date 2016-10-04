@@ -25,7 +25,6 @@ namespace MediaButler.Common.ResourceAccess
             blobClient = mezzamineStorageAccount.CreateCloudBlobClient();
             tableClient = mezzamineStorageAccount.CreateCloudTableClient();
         }
-
         public void DeleteBlobFile(string blobUrl)
         {
             Uri completeUrl = new Uri(blobUrl);
@@ -44,8 +43,6 @@ namespace MediaButler.Common.ResourceAccess
             blockBlob.Delete();
 
         }
-
-
         public string ReadTextBlob(string blobUrl)
         {
             Uri completeUrl = new Uri(blobUrl);
@@ -63,7 +60,6 @@ namespace MediaButler.Common.ResourceAccess
             return data;
 
         }
-
         public void PersistProcessStatus(ChainRequest request)
         {
             ProcessSnapShot mysh = new ProcessSnapShot(request.ProcessTypeId, request.ProcessInstanceId);
@@ -114,7 +110,6 @@ namespace MediaButler.Common.ResourceAccess
             }
                 return aux;
         }
-
         public string GetBlobSasUri(string blobUri,int hours)
         {
             var blob = blobClient.GetBlobReferenceFromServer(new Uri(blobUri));
@@ -125,7 +120,6 @@ namespace MediaButler.Common.ResourceAccess
             string sasBlobToken = blob.GetSharedAccessSignature(sasConstraints);
             return blob.Uri + sasBlobToken;
         }
-
         public void parkingNewBinaries()
         {
             CloudBlobContainer container = blobClient.GetContainerReference("mediabutlerbin");
@@ -143,6 +137,20 @@ namespace MediaButler.Common.ResourceAccess
                     }
                 }
             }
+        }
+        public IjsonKeyValue GetDotControlData(string URL)
+        {
+            string jsonControlFile = null;
+            if (!string.IsNullOrEmpty(URL))
+            {
+                jsonControlFile = ReadTextBlob(URL);
+            }
+            if (string.IsNullOrEmpty(jsonControlFile))
+            {
+                jsonControlFile = "{}";
+                Trace.TraceInformation("Dot Control File has not content");
+            }
+            return new jsonKeyValue(jsonControlFile);
         }
     }
 }

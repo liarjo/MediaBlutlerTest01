@@ -20,5 +20,7 @@ namespace MediaButler.Common.ResourceAccess
         IAsset CreateAsset(string AssetName, string blobUrl, string MediaStorageConn, string StorageConnectionString, string WorkflowName);
         string LoadEncodeProfile(string profileInfo, string ProcessConfigConn);
         void SetPrimaryFile(IAsset MyAsset, IAssetFile theAssetFile);
+        IJob ExecuteGridJob(string OutputAssetsName, string JobName, string MediaProcessorName, string[] EncodingConfiguration, string TaskNameBase, string AssetId, EventHandler OnJob_Error, EventHandler OnJob_Update);
+        string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData, string EncodeStepEncodeConfigList, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration);
     }
 }

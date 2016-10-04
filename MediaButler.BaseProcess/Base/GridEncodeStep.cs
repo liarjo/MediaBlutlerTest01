@@ -12,7 +12,7 @@ namespace MediaButler.BaseProcess
     class GridEncodeStep : MediaButler.Common.workflow.StepHandler
     {
         private ButlerProcessRequest myRequest;
-        private IButlerStorageManager blobManager;
+        private IButlerStorageManager myBlobManager;
         private CloudMediaContext _MediaServicesContext;
         private IEncoderSupport myEncodigSupport;
         public override void HandleCompensation(ChainRequest request)
@@ -59,113 +59,41 @@ namespace MediaButler.BaseProcess
             {
                 myRequest.MetaData[Configuration.TranscodingAdvance] = message;
             }
-            blobManager.PersistProcessStatus(myRequest);
+            myBlobManager.PersistProcessStatus(myRequest);
             Trace.TraceInformation(message);
 
         }
-        private string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData)
-        {
-            string[] aux;
-           
-            if (!string.IsNullOrEmpty( dotControlData.Read(DotControlProperty.GridEncodeStepEncodeConfigList) ))
-            {
-                //Definition encoders on instance level 
-                var Xlist = dotControlData.ReadArray(DotControlProperty.GridEncodeStepEncodeConfigList).ToArray();
-                aux = new string[Xlist.Count()];
-                int profileId = 0;
-                foreach (var profile in Xlist)
-                {
-                    string url = myRequest.ButlerRequest.MezzanineFiles.Where(f => f.ToLower().EndsWith(profile.ToString().ToLower())).FirstOrDefault();
-                    if (url==null)
-                    {
-                        string errorMensage = string.Format("[{0}] Process Instance ID {2} Error loading encoding profile from file package {1}",myRequest.ProcessTypeId,profile.ToString(),myRequest.ProcessInstanceId);
-                        throw new Exception(errorMensage);
-                    }
-                    aux[profileId] = blobManager.ReadTextBlob(url) ;
-                    profileId += 1;
-                }
-            }
-            else
-            {
-                //Definition on Process definition
-                string encodigProfileFileName;
-                if (string.IsNullOrEmpty(this.StepConfiguration))
-                {
-                    //Use default
-                    encodigProfileFileName = "H264 Multiple Bitrate 1080p.json";
-                }
-                else
-                {
-                    //Use process level definition
-                    encodigProfileFileName = this.StepConfiguration;
-                }
-                aux = new string[] { myEncodigSupport.LoadEncodeProfile(encodigProfileFileName, myRequest.ProcessConfigConn)  };
-            }
-            return aux;
-        }
+        
+       
         public override void HandleExecute(ChainRequest request)
         {
             //1. Step Setup 
             myRequest = (ButlerProcessRequest)request;
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
-            blobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
-            string jsonControlFile = blobManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
-            IjsonKeyValue dotControlData = new jsonKeyValue(jsonControlFile);
+            myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);
 
-            //2. Setup Names
+            //2. Get Current Asset
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
+            
+            //3. JOB parameters
+            string OutputAssetsName = asset.Name + "_mbGridEncode";
+            string JobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId, asset.Name);
             string MediaProcessorName = dotControlData.Read(DotControlProperty.GridEncodeStepMediaProcessorName);
             if (string.IsNullOrEmpty(MediaProcessorName))
             {
                 MediaProcessorName = "Media Encoder Standard";
             }
-            string jobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId,asset.Name);
-            string TaskNameBase = "My task";
+            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData,DotControlProperty.GridEncodeStepEncodeConfigList, myRequest.ButlerRequest.MezzanineFiles,myRequest.ProcessConfigConn,this.StepConfiguration);
             
-            //2. Create JOB
-            IJob currentJob = _MediaServicesContext.Jobs.Create(jobName);
-            
-            //3. Get AMS processor
-            var processor = myEncodigSupport.GetLatestMediaProcessorByName(MediaProcessorName);
-
-            //4. Create multiples Tasks
-            // string[] encodeConfigurations = GetLoadEncodignProfiles(dotControlData.Read("GridEncodeStep.encodeConfigList"));
-            string[] encodeConfigurations = GetLoadEncodignProfiles(dotControlData);
-
-            ITask firstTask = currentJob.Tasks.AddNew(TaskNameBase, processor, encodeConfigurations[0], TaskOptions.DoNotCancelOnJobFailure | TaskOptions.DoNotDeleteOutputAssetOnFailure);
-            firstTask.InputAssets.Add(asset);
-            IAsset theOutputAsset= firstTask.OutputAssets.AddNew(asset.Name + "_mbGridEncode", AssetCreationOptions.None);
-            
-            if (encodeConfigurations.Length>1)
-            {
-                for (int layerID = 1; layerID < encodeConfigurations.Length; layerID++)
-                {
-                    string layerConfig = @"";
-                    layerConfig = encodeConfigurations[layerID];
-                    ITask layerTask = currentJob.Tasks.AddNew(TaskNameBase + "_" + layerID.ToString(), processor, layerConfig, TaskOptions.DoNotCancelOnJobFailure | TaskOptions.DoNotDeleteOutputAssetOnFailure);
-                    layerTask.InputAssets.Add(asset);
-                    layerTask.OutputAssets.Add(theOutputAsset);
-                }
-            }
-
-            //5. Change Event
-            currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
-
-            //6.Set advance on 0%
-            string message = "job " + currentJob.Id + " Percent complete: 0%";
-            MyEncodigSupport_JobUpdate(message, null);
-
-            //7. Launch the job.
-            currentJob.Submit();
-
-            //8. Check Project Status
-            myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
-            myEncodigSupport.JobUpdate  += MyEncodigSupport_JobUpdate;
-            myEncodigSupport.WaitJobFinish(currentJob.Id);
+            //4. Execute JOB and Wait
+            IJob currentJob = myEncodigSupport.ExecuteGridJob(OutputAssetsName, JobName, MediaProcessorName, encodeConfigurations,"Grid Task",asset.Id, MyEncodigSupport_OnJobError, MyEncodigSupport_JobUpdate);
 
             //9. Update AssetID
             myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
+
+           
         }
     }
 }

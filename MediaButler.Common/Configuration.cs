@@ -19,6 +19,9 @@ namespace MediaButler.Common
         public static string httpNotificationStepBaseUrl = "baseUrl";
         public static string IngestMultiMezzamineFilesPrimaryFile = "myPrimaryFile";
         public static string StandardEncodigProfileName = "encodigProfile";
+        public static string Index2EncodeStepEncodeConfigList = "Index2Preview.encodeConfigList";
+        public static string Index2EncodeStepMediaProcessorName = "Index2Preview.MediaProcessorName";
+        public static string Index2PreviewCopySubTitles = "Index2Preview.CopySubTitles";
     }
     public class Configuration
     {

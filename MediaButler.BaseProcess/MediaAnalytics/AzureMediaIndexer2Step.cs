@@ -14,7 +14,7 @@ namespace MediaButler.BaseProcess.MediaAnalytics
     class AzureMediaIndexer2Step: MediaButler.Common.workflow.StepHandler
     {
         private ButlerProcessRequest myRequest;
-        private IButlerStorageManager blobManager;
+        private IButlerStorageManager myBlobManager;
         private CloudMediaContext _MediaServicesContext;
         private IEncoderSupport myEncodigSupport;
 
@@ -35,7 +35,7 @@ namespace MediaButler.BaseProcess.MediaAnalytics
             {
                 myRequest.MetaData[Configuration.TranscodingAdvance] = message;
             }
-            blobManager.PersistProcessStatus(myRequest);
+            myBlobManager.PersistProcessStatus(myRequest);
             Trace.TraceInformation(message);
 
         }
@@ -56,49 +56,54 @@ namespace MediaButler.BaseProcess.MediaAnalytics
 
             throw new Exception(txt);
         }
+        private void CopyCaptions(IAsset myAssetFrom, IAsset myAssetTo)
+        {
+            foreach (var assetFile in myAssetFrom.AssetFiles)
+            {
+                string magicName = assetFile.Name;
+                assetFile.Download(magicName);
+                IAssetFile newFile = myAssetTo.AssetFiles.Create(assetFile.Name);
+                newFile.Upload(magicName);
+                System.IO.File.Delete(magicName);
+                newFile.Update();
+            }
+            myAssetTo.Update();
+        }
         public override void HandleExecute(ChainRequest request)
         {
-            //Setup
+            //1. Step Setup 
             myRequest = (ButlerProcessRequest)request;
             _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
-            blobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
-            string jsonControlFile = blobManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
-            IjsonKeyValue dotControlData = new jsonKeyValue(jsonControlFile);
+            myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);
 
-            //1. Create JOB
-            IJob currentJob = _MediaServicesContext.Jobs.Create("My Indexing Job");
-            //2. Get AMS processor
-            string MediaProcessorName = "Azure Media Indexer 2 Preview";
-            var processor = myEncodigSupport.GetLatestMediaProcessorByName(MediaProcessorName);
-
-            //3. Create Task
-            string configuration = dotControlData.Read("indexer2_profile");
-            ITask task = currentJob.Tasks.AddNew("My Indexing Task",processor,configuration,TaskOptions.None);
-            
-            //4. Input Asset
+            //2. Get Current Asset
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
-            task.InputAssets.Add(asset);
             
-            //5. Output Asset
-            task.OutputAssets.AddNew(asset.Name + "_mbIndex2", AssetCreationOptions.None);
-            //6. Chnage Event
-            currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(myEncodigSupport.StateChanged);
-            
-            //7.Set advantce on 0%
-            string message = "job " + currentJob.Id + " Percent complete: 0%";
-            MyEncodigSupport_JobUpdate(message, null);
+            //3. JOB parameters
+            string OutputAssetsName = asset.Name + "_mbIndex2";
+            string JobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId, asset.Name);
+            string MediaProcessorName = dotControlData.Read(DotControlProperty.Index2EncodeStepMediaProcessorName);
+            if (string.IsNullOrEmpty(MediaProcessorName))
+            {
+                MediaProcessorName = "Azure Media Indexer 2 Preview";
+            }
+            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData,DotControlProperty.Index2EncodeStepEncodeConfigList, myRequest.ButlerRequest.MezzanineFiles, myRequest.ProcessConfigConn, this.StepConfiguration);
 
-            //8. Launch the job.
-            currentJob.Submit();
+            //4. Execute JOB and Wait
+            IJob currentJob = myEncodigSupport.ExecuteGridJob(OutputAssetsName, JobName, MediaProcessorName, encodeConfigurations, "Indexing Task", asset.Id, MyEncodigSupport_OnJobError, MyEncodigSupport_JobUpdate);
 
-            //9. Check Project Status
-            myEncodigSupport.OnJobError += MyEncodigSupport_OnJobError;
-            myEncodigSupport.JobUpdate += MyEncodigSupport_JobUpdate;
-            myEncodigSupport.WaitJobFinish(currentJob.Id);
-
-            //10. Update AssetID
-            myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
+            //5. Copy subtitles files to input asste?
+            if ("yes" == dotControlData.Read(DotControlProperty.Index2PreviewCopySubTitles))
+            {
+                CopyCaptions(currentJob.OutputMediaAssets.FirstOrDefault(), asset);
+                currentJob.OutputMediaAssets.FirstOrDefault().Delete();
+            }
+            else
+            {
+                myRequest.AssetId = currentJob.OutputMediaAssets.FirstOrDefault().Id;
+            }
         }
         
 

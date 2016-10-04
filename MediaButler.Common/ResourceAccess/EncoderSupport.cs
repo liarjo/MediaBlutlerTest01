@@ -45,37 +45,6 @@ namespace MediaButler.Common.ResourceAccess
                 Trace.TraceInformation("Job {0} state Changed from {1} to {2}", job.Id, e.PreviousState, e.CurrentState);
 
             }
-            //switch (e.CurrentState)
-            //{
-            //    case JobState.Finished:
-            //        //if (JobUpdate != null)
-            //        //{
-            //        //    string message = "job " + job.Id + " Percent complete: 100%";
-            //        //    JobUpdate(message, null);
-            //        //}
-            //        break;
-            //    //case JobState.Canceling:
-            //    //case JobState.Queued:
-            //    //case JobState.Scheduled:
-            //    //case JobState.Processing:
-            //    //    //Trace.TraceInformation("Please wait Job {0} Finish", job.Id);
-            //    //    break;
-            //    case JobState.Canceled:
-            //        //if (OnJobCancel != null)
-            //        //{
-            //        //    OnJobCancel(this, job);
-            //        //}
-            //        break;
-            //    case JobState.Error:
-            //        //if (JobUpdate != null)
-            //        //{
-            //        //    string message = "job " + job.Id + " Percent complete: -1%";
-            //        //    JobUpdate(message, null);
-            //        //}
-            //        break;
-            //    default:
-            //        break;
-            //}
         }
         public void WaitJobFinish(string jobId)
         {
@@ -306,7 +275,94 @@ namespace MediaButler.Common.ResourceAccess
             theAssetFile.IsPrimary = true;
             theAssetFile.Update();
         }
+        public IJob ExecuteGridJob(string OutputAssetsName,string JobName,string MediaProcessorName, string[] EncodingConfiguration,string TaskNameBase,string AssetId,EventHandler OnJob_Error,EventHandler OnJob_Update)
+        {
+            //1. current Asset
+            IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == AssetId).FirstOrDefault();
+            //2. Create JOB
+            IJob currentJob = _MediaServicesContext.Jobs.Create(JobName);
 
+            //3. Get AMS processor
+            var processor = GetLatestMediaProcessorByName(MediaProcessorName);
 
+            //4. Create multiples Tasks
+            ITask firstTask = currentJob.Tasks.AddNew(TaskNameBase +"_0", processor, EncodingConfiguration[0], TaskOptions.DoNotCancelOnJobFailure | TaskOptions.DoNotDeleteOutputAssetOnFailure);
+            firstTask.InputAssets.Add(asset);
+            IAsset theOutputAsset = firstTask.OutputAssets.AddNew(OutputAssetsName, AssetCreationOptions.None);
+            if (EncodingConfiguration.Length > 1)
+            {
+                for (int layerID = 1; layerID < EncodingConfiguration.Length; layerID++)
+                {
+                    string layerConfig = @"";
+                    layerConfig = EncodingConfiguration[layerID];
+                    ITask layerTask = currentJob.Tasks.AddNew(TaskNameBase + "_" + layerID.ToString(), processor, layerConfig, TaskOptions.DoNotCancelOnJobFailure | TaskOptions.DoNotDeleteOutputAssetOnFailure);
+                    layerTask.InputAssets.Add(asset);
+                    layerTask.OutputAssets.Add(theOutputAsset);
+                }
+            }
+
+            //5. Change Event
+            currentJob.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
+            this.OnJobError = OnJob_Error;
+            this.JobUpdate = OnJob_Update;
+
+            //6.Set advance on 0%
+            string message = "job " + currentJob.Id + " Percent complete: 0%";
+            if (OnJob_Update != null)
+            {
+                OnJob_Update(message, null);
+            }
+            
+            //7. Launch the job.
+            currentJob.Submit();
+
+            //8. Wait Finish the JOB
+            WaitJobFinish(currentJob.Id);
+
+            //9. Return Job             
+            return currentJob;
+        }
+        public string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData,string EncodeStepEncodeConfigList, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration)
+        {
+            var  myBlobManager = BlobManagerFactory.CreateBlobManager(ProcessConfigConn);
+            string[] aux;
+
+            if (!string.IsNullOrEmpty(dotControlData.Read(EncodeStepEncodeConfigList)))
+            {
+                //Definition encoders on instance level 
+                var Xlist = dotControlData.ReadArray(EncodeStepEncodeConfigList).ToArray();
+                aux = new string[Xlist.Count()];
+                int profileId = 0;
+                foreach (var profile in Xlist)
+                {
+                    string url = MezzanineFiles.Where(f => f.ToLower().EndsWith(profile.ToString().ToLower())).FirstOrDefault();
+                    if (url == null)
+                    {
+                       // string errorMensage = string.Format("[{0}] Process Instance ID {2} Error loading encoding profile from file package {1}", myRequest.ProcessTypeId, profile.ToString(), myRequest.ProcessInstanceId);
+                        throw new Exception("Encoding profile is not on file package!");
+                    }
+                    aux[profileId] = myBlobManager.ReadTextBlob(url);
+                    profileId += 1;
+                }
+            }
+            else
+            {
+                //Definition on Process definition
+                string encodigProfileFileName;
+                if (string.IsNullOrEmpty(StepConfiguration))
+                {
+                    //Use default
+                    encodigProfileFileName = "H264 Multiple Bitrate 1080p.json";
+                }
+                else
+                {
+                    //Use process level definition
+                    encodigProfileFileName = StepConfiguration;
+                }
+                
+                aux = new string[] { LoadEncodeProfile(encodigProfileFileName, ProcessConfigConn) };
+            }
+            return aux;
+        }
     }
 }
