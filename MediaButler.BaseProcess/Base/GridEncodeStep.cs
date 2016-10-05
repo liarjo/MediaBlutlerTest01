@@ -73,19 +73,15 @@ namespace MediaButler.BaseProcess
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);
-
+            IjsonKeyValue processData =new jsonKeyValue( myBlobManager.GetButlerConfigurationValue(ProcessConfigKeys.DefualtPartitionKey, myRequest.ProcessTypeId + ".config"));
             //2. Get Current Asset
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
             
             //3. JOB parameters
             string OutputAssetsName = asset.Name + "_mbGridEncode";
             string JobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId, asset.Name);
-            string MediaProcessorName = dotControlData.Read(DotControlProperty.GridEncodeStepMediaProcessorName);
-            if (string.IsNullOrEmpty(MediaProcessorName))
-            {
-                MediaProcessorName = "Media Encoder Standard";
-            }
-            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData,DotControlProperty.GridEncodeStepEncodeConfigList, myRequest.ButlerRequest.MezzanineFiles,myRequest.ProcessConfigConn,this.StepConfiguration);
+            string MediaProcessorName = myEncodigSupport.GetMediaProcessorName(dotControlData,processData);
+            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData, processData, myRequest.ButlerRequest.MezzanineFiles,myRequest.ProcessConfigConn,this.StepConfiguration);
             
             //4. Execute JOB and Wait
             IJob currentJob = myEncodigSupport.ExecuteGridJob(OutputAssetsName, JobName, MediaProcessorName, encodeConfigurations,"Grid Task",asset.Id, MyEncodigSupport_OnJobError, MyEncodigSupport_JobUpdate);

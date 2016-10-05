@@ -177,11 +177,11 @@ namespace MediaButler.BaseProcess
             {
                 //
                 IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
-                string jsonControl = resource.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+                string jsonControl = resource.ReadTextBlob(new Uri(myRequest.ButlerRequest.ControlFileUri));
                 if (!string.IsNullOrEmpty(jsonControl))
                 {
                     IjsonKeyValue myControl = new jsonKeyValue(jsonControl);
-                    myPrimaryFile = myControl.Read(DotControlProperty.IngestMultiMezzamineFilesPrimaryFile);
+                    myPrimaryFile = myControl.Read(DotControlConfigKeys.IngestMultiMezzamineFilesPrimaryFile);
                 }
             }
             

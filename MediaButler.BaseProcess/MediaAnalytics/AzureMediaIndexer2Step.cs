@@ -77,6 +77,7 @@ namespace MediaButler.BaseProcess.MediaAnalytics
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);
+            IjsonKeyValue processData = new jsonKeyValue(myBlobManager.GetButlerConfigurationValue(ProcessConfigKeys.DefualtPartitionKey, myRequest.ProcessTypeId + ".config"));
 
             //2. Get Current Asset
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
@@ -84,18 +85,14 @@ namespace MediaButler.BaseProcess.MediaAnalytics
             //3. JOB parameters
             string OutputAssetsName = asset.Name + "_mbIndex2";
             string JobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId, asset.Name);
-            string MediaProcessorName = dotControlData.Read(DotControlProperty.Index2EncodeStepMediaProcessorName);
-            if (string.IsNullOrEmpty(MediaProcessorName))
-            {
-                MediaProcessorName = "Azure Media Indexer 2 Preview";
-            }
-            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData,DotControlProperty.Index2EncodeStepEncodeConfigList, myRequest.ButlerRequest.MezzanineFiles, myRequest.ProcessConfigConn, this.StepConfiguration);
+            string MediaProcessorName = myEncodigSupport.GetMediaProcessorName(dotControlData, processData);
+            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData, processData, myRequest.ButlerRequest.MezzanineFiles, myRequest.ProcessConfigConn, this.StepConfiguration);
 
             //4. Execute JOB and Wait
             IJob currentJob = myEncodigSupport.ExecuteGridJob(OutputAssetsName, JobName, MediaProcessorName, encodeConfigurations, "Indexing Task", asset.Id, MyEncodigSupport_OnJobError, MyEncodigSupport_JobUpdate);
 
             //5. Copy subtitles files to input asste?
-            if ("yes" == dotControlData.Read(DotControlProperty.Index2PreviewCopySubTitles))
+            if ("yes" == dotControlData.Read(DotControlConfigKeys.Index2PreviewCopySubTitles))
             {
                 CopyCaptions(currentJob.OutputMediaAssets.FirstOrDefault(), asset);
                 currentJob.OutputMediaAssets.FirstOrDefault().Delete();

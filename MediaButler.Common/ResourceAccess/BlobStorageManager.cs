@@ -43,22 +43,25 @@ namespace MediaButler.Common.ResourceAccess
             blockBlob.Delete();
 
         }
-        public string ReadTextBlob(string blobUrl)
+        public string ReadTextBlob(Uri blobUrl)
         {
-            Uri completeUrl = new Uri(blobUrl);
-            int segmentIndex = completeUrl.Segments.Count() - 1;
-            string containerName = completeUrl.Segments[1];
+            int segmentIndex = blobUrl.Segments.Count() - 1;
+            string containerName = blobUrl.Segments[1];
 
             string blobName = "";
             for (int i = 2; i <= segmentIndex; i++)
             {
-               blobName += Uri.UnescapeDataString(completeUrl.Segments[i]); 
+               blobName += Uri.UnescapeDataString(blobUrl.Segments[i]); 
             }
             CloudBlobContainer myContainer = blobClient.GetContainerReference(containerName);
-            //json = CloudStorageAccount.Parse(myRequest.ProcessConfigConn).CreateCloudBlobClient().GetContainerReference(myRequest.ProcessTypeId).GetBlockBlobReference(controlFilename).DownloadText();
-            string data = myContainer.GetBlockBlobReference(blobName).DownloadText();
-            return data;
+            return myContainer.GetBlockBlobReference(blobName).DownloadText();
+   
 
+        }
+        public string ReadTextBlob(string containerName, string blobName)
+        {
+            CloudBlobContainer myContainer = blobClient.GetContainerReference(containerName);
+            return myContainer.GetBlockBlobReference(blobName).DownloadText();
         }
         public void PersistProcessStatus(ChainRequest request)
         {
@@ -143,7 +146,7 @@ namespace MediaButler.Common.ResourceAccess
             string jsonControlFile = null;
             if (!string.IsNullOrEmpty(URL))
             {
-                jsonControlFile = ReadTextBlob(URL);
+                jsonControlFile = ReadTextBlob(new Uri(URL));
             }
             if (string.IsNullOrEmpty(jsonControlFile))
             {
@@ -152,5 +155,22 @@ namespace MediaButler.Common.ResourceAccess
             }
             return new jsonKeyValue(jsonControlFile);
         }
+
+        public string GetButlerConfigurationValue(string partition, string row)
+        {
+            string config = "";
+            try
+            {
+                config = MediaButler.Common.Configuration.GetConfigurationValue(row, partition, storageConn);
+            }
+            catch (Exception)
+            {
+                string txt = string.Format("Tryto read {0} but it is not in configuration table! at {1} ", row, DateTime.Now.ToString());
+                Trace.TraceWarning(txt);
+            }
+            return config;
+        }
+
+        
     }
 }

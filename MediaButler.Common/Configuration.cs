@@ -12,11 +12,18 @@ using Microsoft.Azure;
 
 namespace MediaButler.Common
 {
-    public class DotControlProperty
+    public class ProcessConfigKeys
+    {
+        public static string DefualtPartitionKey = "MediaButler.Common.workflow.ProcessHandler";
+        public static string MediaButlerHostHttpCallBackOnError = "HttpCallBackOnError";
+        public static string CreateSasLocatorStepLogAllAssetFile = "CreateSasLocatorStep.LogAllAssetFile";
+    }
+    public class DotControlConfigKeys
     {
         public static string GridEncodeStepEncodeConfigList = "GridEncodeStep.encodeConfigList";
         public static string GridEncodeStepMediaProcessorName = "GridEncodeStep.MediaProcessorName";
-        public static string httpNotificationStepBaseUrl = "baseUrl";
+        public static string httpNotificationStepGetOnFinishUrl = "httpNotificationStep.GetOnFinishUrl";
+        public static string httpNotificationStepPostOnFinishUrl = "httpNotificationStep.PostOnFinishUrl";
         public static string IngestMultiMezzamineFilesPrimaryFile = "myPrimaryFile";
         public static string StandardEncodigProfileName = "encodigProfile";
         public static string Index2EncodeStepEncodeConfigList = "Index2Preview.encodeConfigList";

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,6 +121,7 @@ namespace MediaButler.Common.Host
                     //2.2 Update status
                     processSnap.CurrentStep = Configuration.poisonFinishProcessStep;
                     storageManager.PersistProcessStatus(processSnap);
+                    
                 }
                 else
                 {
@@ -134,6 +136,35 @@ namespace MediaButler.Common.Host
                 CloudQueueMessage poison = new CloudQueueMessage(Newtonsoft.Json.JsonConvert.SerializeObject(myButlerResponse));
                 poisonQueue.AddMessage(poison);
                 sw = true;
+                
+                //4. Send On Error HTTP Callback Notification
+                try
+                {
+                    var StorageManager = ResourceAccess.BlobManagerFactory.CreateBlobManager(_Configuration.ProcessConfigConn);
+                    string jsonProcessConfiguration = StorageManager.GetButlerConfigurationValue(
+                        ProcessConfigKeys.DefualtPartitionKey,
+                        myButlerRequest.WorkflowName + ".config");
+
+                    var processConfiguration = new ResourceAccess.jsonKeyValue(jsonProcessConfiguration);
+
+                    if (processConfiguration.Read(ProcessConfigKeys.MediaButlerHostHttpCallBackOnError) != "")
+                    {
+                        //POST
+                        string url = processConfiguration.Read(ProcessConfigKeys.MediaButlerHostHttpCallBackOnError);
+                        using (var client = new HttpClient())
+                        {
+                            var content = new StringContent(
+                                StorageManager.readProcessSanpShot(myButlerRequest.WorkflowName, processId).jsonContext,
+                                Encoding.UTF8, "application/json");
+                            var result = client.PostAsync(url, content).Result;
+                            Trace.TraceInformation("Http Post Notification Result: " + result.ToString());
+                        }
+                    }
+                }
+                catch (Exception X)
+                {
+                    Trace.TraceError("HTTP CALLBACK ERROR " + X.Message);
+                }
             }
             catch (Exception X)
             {

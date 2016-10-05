@@ -1,4 +1,6 @@
-﻿using Microsoft.WindowsAzure.MediaServices.Client;
+﻿using MediaButler.Common;
+using MediaButler.Common.ResourceAccess;
+using Microsoft.WindowsAzure.MediaServices.Client;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +15,7 @@ namespace MediaButler.BaseProcess
         private ButlerProcessRequest myRequest;
         private CloudMediaContext _MediaServiceContext;
         private IAsset myAsset;
-
+        private IButlerStorageManager StorageManager;
         private void buildlocator()
         {
             myAsset = _MediaServiceContext.Assets.Where(xx => xx.Id == myRequest.AssetId).FirstOrDefault();
@@ -30,11 +32,37 @@ namespace MediaButler.BaseProcess
             {
                 myRequest.MetaData.Add("sasPathurl", locator.Path);
             }
+            //Add all files URL to log?
+            string jsonProcessConfiguration = StorageManager.GetButlerConfigurationValue(
+                ProcessConfigKeys.DefualtPartitionKey,
+                myRequest.ProcessTypeId + ".config");
+            var processConfiguration = new Common.ResourceAccess.jsonKeyValue(jsonProcessConfiguration);
+
+            if (processConfiguration.Read(ProcessConfigKeys.CreateSasLocatorStepLogAllAssetFile).ToLower() == "yes")
+            {
+                List<string> urlList = new List<string>();
+                foreach (var file in myAsset.AssetFiles)
+                {
+                    urlList.Add(locator.BaseUri + "/" + file.Name + locator.ContentAccessComponent);
+                }
+                string jsonList = Newtonsoft.Json.JsonConvert.SerializeObject(urlList);
+                if (myRequest.MetaData.ContainsKey("sasFileUrlList"))
+                {
+                    myRequest.MetaData["sasFileUrlList"] = jsonList;
+                }
+                else
+                {
+                    myRequest.MetaData.Add("sasFileUrlList", jsonList);
+                }
+            }
+
         }
+       
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
             _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            StorageManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             buildlocator();
         }
 

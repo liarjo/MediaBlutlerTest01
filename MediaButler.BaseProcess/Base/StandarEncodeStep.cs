@@ -39,11 +39,11 @@ namespace MediaButler.BaseProcess
             //First priority Process instance level === .Control as part of the package
             if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
             {
-                string jsonData = myStorageManager.ReadTextBlob(myRequest.ButlerRequest.ControlFileUri);
+                string jsonData = myStorageManager.ReadTextBlob(new Uri(myRequest.ButlerRequest.ControlFileUri));
                 IjsonKeyValue x = new jsonKeyValue(jsonData);
                 try
                 {
-                    encodeProfileName = x.Read(DotControlProperty.StandardEncodigProfileName).ToLower();
+                    encodeProfileName = x.Read(DotControlConfigKeys.StandardEncodigProfileName).ToLower();
                 }
                 catch (Exception)
                 {

@@ -322,47 +322,78 @@ namespace MediaButler.Common.ResourceAccess
             //9. Return Job             
             return currentJob;
         }
-        public string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData,string EncodeStepEncodeConfigList, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration)
+        public string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData, IjsonKeyValue processData, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration)
         {
             var  myBlobManager = BlobManagerFactory.CreateBlobManager(ProcessConfigConn);
-            string[] aux;
+            string[] EncodingProfiles;
+            int profileId = 0;
 
-            if (!string.IsNullOrEmpty(dotControlData.Read(EncodeStepEncodeConfigList)))
+            if (!string.IsNullOrEmpty(dotControlData.Read(DotControlConfigKeys.GridEncodeStepEncodeConfigList)))
             {
-                //Definition encoders on instance level 
-                var Xlist = dotControlData.ReadArray(EncodeStepEncodeConfigList).ToArray();
-                aux = new string[Xlist.Count()];
-                int profileId = 0;
+                //Definition encoders on instance level DotcControl File
+                var Xlist = dotControlData.ReadArray(DotControlConfigKeys.GridEncodeStepEncodeConfigList).ToArray();
+                EncodingProfiles = new string[Xlist.Count()];
+                
                 foreach (var profile in Xlist)
                 {
                     string url = MezzanineFiles.Where(f => f.ToLower().EndsWith(profile.ToString().ToLower())).FirstOrDefault();
                     if (url == null)
                     {
-                       // string errorMensage = string.Format("[{0}] Process Instance ID {2} Error loading encoding profile from file package {1}", myRequest.ProcessTypeId, profile.ToString(), myRequest.ProcessInstanceId);
                         throw new Exception("Encoding profile is not on file package!");
                     }
-                    aux[profileId] = myBlobManager.ReadTextBlob(url);
+                    EncodingProfiles[profileId] = myBlobManager.ReadTextBlob(new Uri(url));
                     profileId += 1;
                 }
             }
             else
             {
-                //Definition on Process definition
-                string encodigProfileFileName;
-                if (string.IsNullOrEmpty(StepConfiguration))
+                if (!string.IsNullOrEmpty(processData.Read(DotControlConfigKeys.GridEncodeStepEncodeConfigList)))
                 {
-                    //Use default
-                    encodigProfileFileName = "H264 Multiple Bitrate 1080p.json";
+                    //Definition Encoders profile on process level 
+                    var profileNameList = processData.ReadArray(DotControlConfigKeys.GridEncodeStepEncodeConfigList).ToArray();
+                    EncodingProfiles = new string[profileNameList.Count()];
+                    foreach (var profileName in profileNameList)
+                    {
+                        EncodingProfiles[profileId] = myBlobManager.ReadTextBlob("mediabutlerbin", "encoderdefinitions/" + profileName);
+                        profileId += 1;
+                    }
                 }
                 else
                 {
-                    //Use process level definition
-                    encodigProfileFileName = StepConfiguration;
+                    //Definition on Process definition
+                    string encodigProfileFileName;
+                    if (string.IsNullOrEmpty(StepConfiguration))
+                    {
+                        //Use default
+                        encodigProfileFileName = "H264 Multiple Bitrate 1080p.json";
+                    }
+                    else
+                    {
+                        //Use process level definition
+                        encodigProfileFileName = StepConfiguration;
+                    }
+
+                    EncodingProfiles = new string[] { LoadEncodeProfile(encodigProfileFileName, ProcessConfigConn) };
                 }
-                
-                aux = new string[] { LoadEncodeProfile(encodigProfileFileName, ProcessConfigConn) };
             }
-            return aux;
+            return EncodingProfiles;
+        }
+
+        public string GetMediaProcessorName(IjsonKeyValue dotControlData, IjsonKeyValue processData)
+        {
+            string theName = "Media Encoder Standard";
+            if (dotControlData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName) != "")
+            {
+                theName = dotControlData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName);
+            }
+            else
+            {
+                if (processData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName) != "")
+                {
+                    theName = processData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName);
+                }
+            }
+            return theName;
         }
     }
 }
