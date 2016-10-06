@@ -1,11 +1,11 @@
 
-HTML callback notification
+HTML GET callback notification
 ==========================
 
 Introduction
 ------------
 
-To receive a HTTP Callback notification from Media Butler Framework
+To receive a HTTP GET Callback notification from Media Butler Framework
 (MBF) you need to use httpNotificationStep step. This step do a HTTP GET
 call with process instance id as parameter on the URL. The base URL is
 reading from dot control file, so this step must be use in a multi file
@@ -131,6 +131,8 @@ RowKey **ContainersToScan**. You need to add to the list container name
 
 testbasicprocess,httpnotificationstep
 
+After update the container scan list, you always need to restar the Web Job.
+
 Fourth, Generate a dot control file
 -----------------------------------
 
@@ -167,7 +169,7 @@ file way. To do that you need to
     The dot control file format is
 ```json
     {
-      "baseUrl":"[youURLHere]"
+      "httpNotificationStep.GetOnFinishUrl":"[youURLHere]"
     }
     
 ```
@@ -190,4 +192,4 @@ instance ID as a sample.
 
 >2016-09-07T21:51:45.523 Function completed (Success,Id=86dcbdce-9102-43d8-a186-b496c62503e0)
 
-Update: you should restart Web Role after add a new process.
+
