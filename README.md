@@ -72,6 +72,7 @@
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/query.md">How To Query Media Butler Process Status</a></p></li>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/watchfolder.md">How to trigger Media Butler process using a specific process instance id</a></p></li>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpCallback.md">How to use HTTP GET callback notification</a>
+<li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpPostCallBack.md">How to use HTTP POST callback notification</a>
 </ol>
 
 ## Reporting issues and feedback
