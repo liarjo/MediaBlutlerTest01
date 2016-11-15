@@ -1,5 +1,7 @@
 ﻿using MediaButler.Common;
+using MediaButler.Common.ResourceAccess;
 using Microsoft.WindowsAzure.MediaServices.Client;
+using Newtonsoft.Json;
 using SendGrid;
 using System;
 using System.Collections.Generic;
@@ -14,11 +16,11 @@ namespace MediaButler.BaseProcess
 {
     class SenGridData
     {
-        public string UserName;
-        public string Pswd;
-        public string To;
-        public string FromName;
-        public string FromMail;
+        public string UserName { get; set; }
+        public string Pswd { get; set; }
+        public string To { get; set; }
+        public string FromName { get; set; }
+        public string FromMail { get; set; }
     }
     class SendGridStep : MediaButler.Common.workflow.StepHandler
     {
@@ -29,7 +31,12 @@ namespace MediaButler.BaseProcess
         private void Setup()
         {
             //this.mySenGridData = new SenGridData();
-            mySenGridData = Newtonsoft.Json.JsonConvert.DeserializeObject<SenGridData>(this.StepConfiguration);
+            //mySenGridData = Newtonsoft.Json.JsonConvert.DeserializeObject<SenGridData>(this.StepConfiguration);
+            var myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
+            IjsonKeyValue myConfig = myBlobManager.GetProcessConfig(myRequest.ButlerRequest.ControlFileUri, myRequest.ProcessTypeId);
+            string jsonTx = myConfig.Read(DotControlConfigKeys.SendGridStepConfig);
+            mySenGridData = JsonConvert.DeserializeObject<SenGridData>(jsonTx);
+
         }
         private void SendMail()
         {
