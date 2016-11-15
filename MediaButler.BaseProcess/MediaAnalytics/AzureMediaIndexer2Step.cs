@@ -58,7 +58,12 @@ namespace MediaButler.BaseProcess.MediaAnalytics
         }
         private void CopyCaptions(IAsset myAssetFrom, IAsset myAssetTo)
         {
-            foreach (var assetFile in myAssetFrom.AssetFiles)
+            var captionFileList = (from f in myAssetFrom.AssetFiles select f).Where(f => 
+                f.Name.EndsWith(".ttml") ||
+                f.Name.EndsWith(".vtt") ||
+                f.Name.EndsWith(".kw.xml")
+            );
+            foreach (var assetFile in captionFileList)
             {
                 string magicName = assetFile.Name;
                 assetFile.Download(magicName);
@@ -79,14 +84,16 @@ namespace MediaButler.BaseProcess.MediaAnalytics
             IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);
             IjsonKeyValue processData = new jsonKeyValue(myBlobManager.GetButlerConfigurationValue(ProcessConfigKeys.DefualtPartitionKey, myRequest.ProcessTypeId + ".config"));
 
+            IjsonKeyValue allPorcessData= myBlobManager.GetProcessConfig(myRequest.ButlerRequest.ControlFileUri, myRequest.ProcessTypeId);
+
             //2. Get Current Asset
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
             
             //3. JOB parameters
             string OutputAssetsName = asset.Name + "_mbIndex2";
             string JobName = string.Format("GridEncodeStep_{1}_{0}", myRequest.ProcessInstanceId, asset.Name);
-            string MediaProcessorName = myEncodigSupport.GetMediaProcessorName(dotControlData, processData);
-            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData, processData, myRequest.ButlerRequest.MezzanineFiles, myRequest.ProcessConfigConn, this.StepConfiguration);
+            string MediaProcessorName = myEncodigSupport.GetMediaProcessorName(allPorcessData,DotControlConfigKeys.Index2EncodeStepMediaProcessorName, "Azure Media Indexer 2 Preview");
+            string[] encodeConfigurations = myEncodigSupport.GetLoadEncodignProfiles(dotControlData, processData,DotControlConfigKeys.Index2EncodeStepEncodeConfigList, myRequest.ButlerRequest.MezzanineFiles, myRequest.ProcessConfigConn, this.StepConfiguration);
 
             //4. Execute JOB and Wait
             IJob currentJob = myEncodigSupport.ExecuteGridJob(OutputAssetsName, JobName, MediaProcessorName, encodeConfigurations, "Indexing Task", asset.Id, MyEncodigSupport_OnJobError, MyEncodigSupport_JobUpdate);
