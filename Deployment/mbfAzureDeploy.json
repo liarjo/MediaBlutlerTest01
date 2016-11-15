@@ -3,11 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
 
-    "farmplanName": {
-      "type": "string",
-      "minLength": 1,
-      "defaultValue": "PlanX"
-    },
+
     "farmplanSKU": {
       "type": "string",
       "allowedValues": [
@@ -27,27 +23,27 @@
       ],
       "defaultValue": "0"
     },
-    "MBFStageConn": { "type": "string" },
-    "packageURI": { "type": "string" },
-    "webjobURI": { "type": "string" },
     "deployDate": { "type": "string" }
   },
   "variables": {
-    "webAppXName": "[concat('webAppX', uniqueString(resourceGroup().id))]"
+    "uniqueTale": "[uniqueString(resourceGroup().id)]",
+    "webAppXName": "[concat('mbfwebapp', variables('uniqueTale'))]",
+    "MBFStagingStorageName": "[concat('mbfstage', variables('uniqueTale'))]",
+    "farmplanName": "[concat('mbfplan', variables('uniqueTale'))]"
 
   },
   "resources": [
     {
-      "name": "[parameters('farmplanName')]",
+      "name": "[variables('farmplanName')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
       "apiVersion": "2014-06-01",
-      "dependsOn": [ ],
+      "dependsOn": [],
       "tags": {
         "displayName": "farmplan"
       },
       "properties": {
-        "name": "[parameters('farmplanName')]",
+        "name": "[variables('farmplanName')]",
         "sku": "[parameters('farmplanSKU')]",
         "workerSize": "[parameters('farmplanWorkerSize')]",
         "numberOfWorkers": 1
@@ -59,15 +55,16 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "2015-08-01",
       "dependsOn": [
-        "[concat('Microsoft.Web/serverfarms/', parameters('farmplanName'))]"
+        "[concat('Microsoft.Web/serverfarms/', variables('farmplanName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/',variables('MBFStagingStorageName'))]"
       ],
       "tags": {
-        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('farmplanName'))]": "Resource",
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('farmplanName'))]": "Resource",
         "displayName": "webAppX"
       },
       "properties": {
         "name": "[variables('webAppXName')]",
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', parameters('farmplanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('farmplanName'))]",
         "siteConfig": {
           "AlwaysOn": true
         }
@@ -85,9 +82,7 @@
             "displayName": "AppSettings"
           },
           "properties": {
-            "MediaButler.ConfigurationStorageConnectionString": "[parameters('MBFStageConn')]",
-            "webjobURI": "[parameters('webjobURI')]",
-            "deployDate": "[parameters('deployDate')]"
+            "MediaButler.ConfigurationStorageConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('MBFStagingStorageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('MBFStagingStorageName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
           }
         },
         {
@@ -99,39 +94,49 @@
           ],
           "properties": {
             "AzureWebJobsDashboard": {
-              "value": "[parameters('MBFStageConn')]",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('MBFStagingStorageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('MBFStagingStorageName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
               "type": "Custom"
             },
             "AzureWebJobsStorage": {
-              "value": "[parameters('MBFStageConn')]",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('MBFStagingStorageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('MBFStagingStorageName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
               "type": "Custom"
-            }
-          }
-        },
-        {
-          "name": "MSDeploy",
-          "type": "extensions",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2015-08-01",
-          "dependsOn": [
-            "[concat('Microsoft.Web/sites/', variables('webAppXName'))]"
-          ],
-          "tags": {
-            "displayName": "webDeploy"
-          },
-          "properties": {
-            "packageUri": "[parameters('packageURI')]",
-            "dbType": "None",
-            "connectionString": "",
-            "setParameters": {
-              "IIS Web Application Name": "[variables('webAppXName')]"
             }
           }
         }
 
       ]
+    },
+    {
+      "name": "[variables('MBFStagingStorageName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "MBFStagingStorage"
+      },
+      "properties": {
+        "accountType": "Standard_LRS"
+      }
     }
   ],
   "outputs": {
+    "MBFStagingStorageKey": {
+
+      "type": "string",
+      "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('MBFStagingStorageName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+    },
+    "MBFStagingStorageName": {
+      "type": "string",
+      "value": "[variables('MBFStagingStorageName')]"
+    },
+    "webAppXName": {
+      "type": "string",
+      "value": "[variables('webAppXName')]"
+    },
+    "farmplanName": {
+      "type": "string",
+      "value": "[variables('farmplanName')]"
+    }
   }
 }

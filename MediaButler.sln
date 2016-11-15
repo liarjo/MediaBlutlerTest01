@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaButlerInstall", "MediaButlerInstall", "{34A57BB8-43ED-4FD9-8BFB-F8A9D2ABEBED}"
 	ProjectSection(SolutionItems) = preProject
@@ -40,6 +40,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButlerWebJobHost", "MediaButlerWebJobHost\MediaButlerWebJobHost.csproj", "{FE430805-7A07-45D4-BD47-1560C42FAD83}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaButler.WorkflowStep", "MediaButler.WorkflowStep\MediaButler.WorkflowStep.csproj", "{4A991827-1CF3-43CA-9809-AF5131D5E265}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{D33F9FAE-F69F-45B3-9064-BBAF684C4E8A}"
+	ProjectSection(SolutionItems) = preProject
+		Deployment\mbfAzureDeploy.json = Deployment\mbfAzureDeploy.json
+		Deployment\zeroTouchDeploy.ps1 = Deployment\zeroTouchDeploy.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
