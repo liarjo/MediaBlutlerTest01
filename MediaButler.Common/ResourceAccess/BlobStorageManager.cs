@@ -126,8 +126,10 @@ namespace MediaButler.Common.ResourceAccess
         public void parkingNewBinaries()
         {
             CloudBlobContainer container = blobClient.GetContainerReference("mediabutlerbin");
-            foreach (IListBlobItem dll in container.ListBlobs(null, false))
+            
+            foreach (IListBlobItem dll in container.ListBlobs().OfType<CloudBlob>().Where(b => b.Name.EndsWith(".dll")))
             {
+                
                 Uri myUri = dll.Uri;
                 int seg = myUri.Segments.Length - 1;
                 string name = myUri.Segments[seg];
@@ -155,7 +157,22 @@ namespace MediaButler.Common.ResourceAccess
             }
             return new jsonKeyValue(jsonControlFile);
         }
+        public IjsonKeyValue GetProcessConfig(string dotControlUrl,string ProcessTypeId)
+        {
+            string jsonControlFile = null;
+            if (!string.IsNullOrEmpty(dotControlUrl))
+            {
+                jsonControlFile = ReadTextBlob(new Uri(dotControlUrl));
+            }
+            if (string.IsNullOrEmpty(jsonControlFile))
+            {
+                jsonControlFile = "{}";
+                Trace.TraceInformation("Dot Control File has not content");
+            }
+            string jsonProcessFile = GetButlerConfigurationValue(ProcessConfigKeys.DefualtPartitionKey, ProcessTypeId + ".config");
 
+            return new ProcessConfiguration(jsonControlFile, jsonProcessFile);
+        }
         public string GetButlerConfigurationValue(string partition, string row)
         {
             string config = "";

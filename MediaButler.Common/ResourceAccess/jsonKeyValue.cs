@@ -32,10 +32,10 @@ namespace MediaButler.Common.ResourceAccess
         }
         
 
-        public string GetJason()
-        {
-            throw new NotImplementedException();
-        }
+        //public string GetJason()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public string Read(string key)
         {

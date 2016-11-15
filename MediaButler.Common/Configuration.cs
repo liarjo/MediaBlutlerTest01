@@ -29,20 +29,18 @@ namespace MediaButler.Common
         public static string Index2EncodeStepEncodeConfigList = "Index2Preview.encodeConfigList";
         public static string Index2EncodeStepMediaProcessorName = "Index2Preview.MediaProcessorName";
         public static string Index2PreviewCopySubTitles = "Index2Preview.CopySubTitles";
+        public static string SelectAssetByType = "SelectAssetBy.Type";
+        public static string SelectAssetByValue = "SelectAssetBy.Value";
+        public static string InjectTTMLSearchServiceName = "InjectTTML.searchServiceName";
+        public static string InjectTTMLadminApiKey = "InjectTTML.adminApiKey";
+        public static string InjectTTMLindexName = "InjectTTML.indexName";
+        public static string SendGridStepConfig = "SendGridStep.Config"; 
     }
     public class Configuration
     {
         private const string configurationTableName = "ButlerConfiguration";
-        private const string workflowStatusTableName = "ButlerWorkflowStatus";
+        
         private const string butlerStorageConnectionConfigurationKey = "MediaButler.ConfigurationStorageConnectionString";
-
-        /// <summary>
-        /// Name of blob used to implement active/passive for input workers.
-        /// </summary>
-        private const string blobLeaseName = "butlerwatcherlease";
-
-        public static string BlobLeaseName { get { return blobLeaseName; } }
-        public static string WorkflowStatusTableName { get { return WorkflowStatusTableName; } }
 
         public static int FailedQueuePollingInterval
         {
@@ -96,7 +94,7 @@ namespace MediaButler.Common
             }
         }
 
-        public static string ButlerStorageConnectionConfigurationKey { get { return butlerStorageConnectionConfigurationKey; } }
+        ///public static string ButlerStorageConnectionConfigurationKey { get { return butlerStorageConnectionConfigurationKey; } }
 
         /// <summary>
         /// Publci enumeration for Workflow status tracking in Workflow
@@ -151,36 +149,7 @@ namespace MediaButler.Common
         /// <returns>JSON configuration</returns>
         public static string GetConfigurationValue(string configKey, string processKey)
         {
-            string configurationValue = "";
-            try
-            {
-                string storageAccountString = CloudConfigurationManager.GetSetting(butlerStorageConnectionConfigurationKey);
-                CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountString);
-                CloudTableClient tableClient = account.CreateCloudTableClient();
-                CloudTable configTable = tableClient.GetTableReference(configurationTableName);
-
-                TableOperation retrieveOperation = TableOperation.Retrieve<ButlerConfigurationEntity>(processKey, configKey);
-
-                // Execute the retrieve operation.
-                TableResult retrievedResult = configTable.Execute(retrieveOperation);
-                //FIX: If configuration don't exist return "" 
-                //if (retrievedResult != null)
-                if (retrievedResult.HttpStatusCode == 200)
-                {
-                    ButlerConfigurationEntity resultEntity = (ButlerConfigurationEntity)retrievedResult.Result;
-                    configurationValue = resultEntity.ConfigurationValue;
-                }
-                else
-                {
-                    Trace.TraceWarning("GetConfigurationValue {0} / {1} don't exist",configKey,processKey);
-                }
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
-            return configurationValue;
+            return GetConfigurationValue(configKey, processKey, System.Configuration.ConfigurationManager.AppSettings[butlerStorageConnectionConfigurationKey]);
         }
         public static string GetConfigurationValue(string configKey, string processKey, string ConfigurationConn)
         {
@@ -191,61 +160,26 @@ namespace MediaButler.Common
                 CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountString);
                 CloudTableClient tableClient = account.CreateCloudTableClient();
                 CloudTable configTable = tableClient.GetTableReference(configurationTableName);
-
                 TableOperation retrieveOperation = TableOperation.Retrieve<ButlerConfigurationEntity>(processKey, configKey);
-
                 // Execute the retrieve operation.
                 TableResult retrievedResult = configTable.Execute(retrieveOperation);
-                if (retrievedResult != null)
+                if (retrievedResult.HttpStatusCode == 200)
                 {
                     ButlerConfigurationEntity resultEntity = (ButlerConfigurationEntity)retrievedResult.Result;
                     configurationValue = resultEntity.ConfigurationValue;
                 }
+                else
+                {
+                    Trace.TraceWarning("GetConfigurationValue {0} / {1} don't exist", configKey, processKey);
+                }
             }
             catch (Exception ex)
             {
-
+                Trace.TraceError("Get Configuration Value Error , Check connection string and MBF Stage storage Account: " + ex.Message);
                 throw new Exception("Get Configuration Value Error , Check connection string and MBF Stage storage Account: " +  ex.Message);
             }
             return configurationValue;
         }
-        /// <summary>
-        /// Sets the configuration Value from the configuration Table. Response is a JSON format
-        /// </summary>
-        /// <param name="configKey">This is a rowkey in Azure Table</param>
-        /// <param name="processKey">This is the partition key in Azure Table</param>
-        /// <param name="processKey">This is the value in Azure Table</param>
-        /// <returns>Returns true if insert is successful</returns>
-        public static bool SetConfigurationValue(string configKey, string processKey, string configurationValue)
-        {
-            bool result = true;
-            try
-            {
-                string storageAccountString = CloudConfigurationManager.GetSetting(butlerStorageConnectionConfigurationKey);
-                CloudStorageAccount account = CloudStorageAccount.Parse(storageAccountString);
-                CloudTableClient tableClient = account.CreateCloudTableClient();
-                CloudTable configTable = tableClient.GetTableReference(configurationTableName);
-                ButlerConfigurationEntity configEntity = new ButlerConfigurationEntity(configKey, processKey);
-                configEntity.ConfigurationValue = configurationValue;
-
-                // Create the TableOperation that inserts the customer entity.
-                TableOperation insertOperation = TableOperation.Insert(configEntity);
-
-                // Execute the insert operation.
-                TableResult insertResult = configTable.Execute(insertOperation);
-                if (insertResult == null)
-                    result = false;
-
-            }
-            catch (Exception ex)
-            {
-                result = false;
-                throw ex;
-            }
-
-            return result;
-        }
-
     }
 
     public class ButlerConfigurationEntity : TableEntity

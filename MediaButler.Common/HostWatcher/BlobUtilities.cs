@@ -67,8 +67,8 @@ namespace MediaButler.Common.HostWatcher
             //TODO: block is okay since WAMS only supports block
             CloudBlockBlob newBlob = container.GetBlockBlobReference(targetPath);
             CloudBlockBlob sourceBlob = container.GetBlockBlobReference(sourcePath);
-            var monitorStr = newBlob.StartCopyFromBlob(sourceBlob);
-
+            //var monitorStr = newBlob.StartCopyFromBlob(sourceBlob);
+            var monitorStr = newBlob.StartCopy(sourceBlob);
             CopyStatus cs = CopyStatus.Pending;
             while (cs == CopyStatus.Pending)
             {

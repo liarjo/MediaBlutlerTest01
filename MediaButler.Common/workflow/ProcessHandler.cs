@@ -32,12 +32,7 @@ namespace MediaButler.Common.workflow
             }
         }
         
-        private string ReadChainConfig(string processTypeId)
-        {
-            string jsonConfig;
-            jsonConfig = MediaButler.Common.Configuration.GetConfigurationValue(processTypeId + ".ChainConfig", this.GetType().FullName, myProcessConfigConn);
-            return jsonConfig;
-        }
+       
         /// <summary>
         /// Read configuration from configration table
         /// </summary>
@@ -98,7 +93,9 @@ namespace MediaButler.Common.workflow
             string jsonTxt;
             try
             {
-                jsonTxt = ReadChainConfig(processTypeId);
+                //processTypeId + ".ChainConfig", this.GetType().FullName,
+
+                jsonTxt = ReadConfig(processTypeId + ".ChainConfig");
             }
             catch (Exception)
             {

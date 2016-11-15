@@ -19,7 +19,7 @@ namespace MediaButler.Common.ResourceAccess
         /// Read al Jsonf file
         /// </summary>
         /// <returns></returns>
-        string GetJason();
+       // string GetJason();
         JToken ReadArray(string key);
     }
 }

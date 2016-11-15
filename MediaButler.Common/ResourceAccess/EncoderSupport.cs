@@ -322,16 +322,16 @@ namespace MediaButler.Common.ResourceAccess
             //9. Return Job             
             return currentJob;
         }
-        public string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData, IjsonKeyValue processData, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration)
+        public string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData, IjsonKeyValue processData,string jsonKey, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration)
         {
             var  myBlobManager = BlobManagerFactory.CreateBlobManager(ProcessConfigConn);
             string[] EncodingProfiles;
             int profileId = 0;
 
-            if (!string.IsNullOrEmpty(dotControlData.Read(DotControlConfigKeys.GridEncodeStepEncodeConfigList)))
+            if (!string.IsNullOrEmpty(dotControlData.Read(jsonKey)))
             {
                 //Definition encoders on instance level DotcControl File
-                var Xlist = dotControlData.ReadArray(DotControlConfigKeys.GridEncodeStepEncodeConfigList).ToArray();
+                var Xlist = dotControlData.ReadArray(jsonKey).ToArray();
                 EncodingProfiles = new string[Xlist.Count()];
                 
                 foreach (var profile in Xlist)
@@ -341,16 +341,21 @@ namespace MediaButler.Common.ResourceAccess
                     {
                         throw new Exception("Encoding profile is not on file package!");
                     }
+                    string jsonTxt = myBlobManager.ReadTextBlob(new Uri(url));
+                    if (jsonTxt[0] != '{')
+                    {
+                        jsonTxt = jsonTxt.Substring(1, jsonTxt.Length - 1);
+                    }
                     EncodingProfiles[profileId] = myBlobManager.ReadTextBlob(new Uri(url));
                     profileId += 1;
                 }
             }
             else
             {
-                if (!string.IsNullOrEmpty(processData.Read(DotControlConfigKeys.GridEncodeStepEncodeConfigList)))
+                if (!string.IsNullOrEmpty(processData.Read(jsonKey)))
                 {
                     //Definition Encoders profile on process level 
-                    var profileNameList = processData.ReadArray(DotControlConfigKeys.GridEncodeStepEncodeConfigList).ToArray();
+                    var profileNameList = processData.ReadArray(jsonKey).ToArray();
                     EncodingProfiles = new string[profileNameList.Count()];
                     foreach (var profileName in profileNameList)
                     {
@@ -379,21 +384,14 @@ namespace MediaButler.Common.ResourceAccess
             return EncodingProfiles;
         }
 
-        public string GetMediaProcessorName(IjsonKeyValue dotControlData, IjsonKeyValue processData)
+        public string GetMediaProcessorName(IjsonKeyValue ProcessConfigData, string keyName, string DefaultValue)
         {
-            string theName = "Media Encoder Standard";
-            if (dotControlData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName) != "")
+            string theValue = DefaultValue;
+            if (ProcessConfigData.Read(keyName)!="")
             {
-                theName = dotControlData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName);
+                theValue = ProcessConfigData.Read(keyName);
             }
-            else
-            {
-                if (processData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName) != "")
-                {
-                    theName = processData.Read(DotControlConfigKeys.GridEncodeStepMediaProcessorName);
-                }
-            }
-            return theName;
+            return theValue;
         }
     }
 }

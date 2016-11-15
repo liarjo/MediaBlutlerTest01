@@ -13,6 +13,7 @@ namespace MediaButler.Common.ResourceAccess
         string GetBlobSasUri(string blobUri,int hours);
         void parkingNewBinaries();
         IjsonKeyValue GetDotControlData(string URL);
+        IjsonKeyValue GetProcessConfig(string dotControlUrl, string ProcessTypeId);
         string GetButlerConfigurationValue(string partition, string row);
     }
 }

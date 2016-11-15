@@ -116,12 +116,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceAccess\BlobManagerFactory.cs" />
     <Compile Include="ResourceAccess\BlobStorageManager.cs" />
-    <Compile Include="ResourceAccess\IdotControl.cs" />
     <Compile Include="ResourceAccess\jsonKeyValue.cs" />
     <Compile Include="ResourceAccess\IButlerStorageManager.cs" />
     <Compile Include="ResourceAccess\EncoderSupport.cs" />
     <Compile Include="ResourceAccess\IjsonKeyValue.cs" />
     <Compile Include="ResourceAccess\IEncoderSupport.cs" />
+    <Compile Include="ResourceAccess\ProcessConfiguration.cs" />
     <Compile Include="workflow\ChainRequest.cs" />
     <Compile Include="workflow\ProcessHandler.cs" />
     <Compile Include="workflow\ProcessSnapShot.cs" />
