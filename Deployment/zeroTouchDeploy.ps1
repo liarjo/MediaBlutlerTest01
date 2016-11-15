@@ -130,9 +130,24 @@ function Upload-ZipToWebApp($resourceGroupName,$webAppName, $slotName = "", $loc
     
     Write-Host $apiReturn
 }
+function GetFileFromBlob($fileName,$fileURL){
+
+    $invocation = (Get-Variable MyInvocation).Value
+    $localPath=$invocation.InvocationName.Substring(0,$invocation.InvocationName.IndexOf($invocation.MyCommand))
+    $configFile=$localPath + $fileName;
+    
+    If (Test-Path $configFile){
+	    Remove-Item $configFile
+    }
+
+    Invoke-WebRequest $fileURL -OutFile $configFile 
+    return $configFile;
+}   
 
 # 0 Set Constants
-    Set-Variable TemplateFileURI 'https://raw.githubusercontent.com/DX-TED-GEISV-Americas/Media-Butler-Framework/master/Deployment/mbfAzureDeploy.json' -Option ReadOnly -Force
+    Set-Variable TemplateFileURI 'https://raw.githubusercontent.com/liarjo/MediaBlutlerTest01/master/Deployment/mbfAzureDeploy.json' -Option ReadOnly -Force
+    Set-Variable webJobZipURI 'https://mediabutler.blob.core.windows.net/webdeploy/20161115%2FRelease.zip?sr=b&sv=2015-12-11&st=2016-11-15T20%3A47%3A51Z&se=2019-11-15T21%3A47%3A00Z&sp=r&spr=https&sig=65SFLsczopORUBys0FjS9d%2FDYbCyHKwwdCoR1UG0I4Y%3D' -Option ReadOnly -Force
+
 
 #1. Login With Organizational Account 
     IF([string]::IsNullOrEmpty($MyClearTextUsername)) 
@@ -195,8 +210,8 @@ function Upload-ZipToWebApp($resourceGroupName,$webAppName, $slotName = "", $loc
         $today=Get-Date -UFormat "%Y%m%d"
         $OptionalParameters.Add("deployDate",$today)
        
-        #$deployOutPut = New-AzureRmResourceGroupDeployment -Name $name -ResourceGroupName $myResourceGroup.ResourceGroupName -TemplateUri $TemplateFileURI   @OptionalParameters -Force -Verbose
-        $deployOutPut = New-AzureRmResourceGroupDeployment -Name $name -ResourceGroupName $myResourceGroup.ResourceGroupName -TemplateFile "C:\Users\jpgarcia\Desktop\New folder\mbfAzureDeploy.json"   @OptionalParameters -Force -Verbose
+        $deployOutPut = New-AzureRmResourceGroupDeployment -Name $name -ResourceGroupName $myResourceGroup.ResourceGroupName -TemplateUri $TemplateFileURI   @OptionalParameters -Force -Verbose
+        
 
         #6. Create MBF Storage Tables, queues and basic configuration
         $MBFStageStorageName=$deployOutPut.Outputs.mbfStagingStorageName.Value
@@ -213,7 +228,9 @@ function Upload-ZipToWebApp($resourceGroupName,$webAppName, $slotName = "", $loc
         #9. Deploy MBF Webjob
         ExexuteKudoCommand -resourceGroupName $myResourceGroup.ResourceGroupName -webAppName $deployOutPut.Outputs.webAppXName.Value -command "mkdir App_Data\jobs\continuous" -slotName $slotName
         #Upload Function
-        Upload-ZipToWebApp -resourceGroupName $myResourceGroup.ResourceGroupName -webAppName $deployOutPut.Outputs.webAppXName.Value -slotName $slotName -localPath "C:\tmp\MediaButlerWebJob.zip" -kuduPath 'App_Data/jobs/continuous'
+        $localZipFile=GetFileFromBlob -fileName 'MediaButlerWebJob.zip' -fileURL $webJobZipURI
+        Upload-ZipToWebApp -resourceGroupName $myResourceGroup.ResourceGroupName -webAppName $deployOutPut.Outputs.webAppXName.Value -slotName $slotName -localPath $localZipFile -kuduPath 'App_Data/jobs/continuous'
+        Remove-Item -Path $localZipFile
 
         #10. ENd SCRIPT
         Write-Host ("Media Bulter Framework deployments objetcs:")
