@@ -34,8 +34,18 @@ namespace MediaButler.BaseProcess
                 default:
                     var _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
                     string AssetName = dotControlData.Read(DotControlConfigKeys.SelectAssetByValue);
-                    IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Name == AssetName).FirstOrDefault();
-                    myRequest.AssetId = asset.Id;
+                    try
+                    {
+                        
+                        IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Name == AssetName).FirstOrDefault();
+                        myRequest.AssetId = asset.Id;
+                    }
+                    catch (Exception X)
+                    {
+
+                        throw new Exception("Error Loading Asset by name " + AssetName);
+                    }
+                    
                     break;
             }
         }
