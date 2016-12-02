@@ -7,32 +7,41 @@ using Microsoft.Azure.WebJobs;
 using System.IO;
 using System.Threading;
 using MediaButler.Common.HostWatcher;
+using System.Diagnostics;
 
 namespace MediaButlerWebJobHost
 {
     // To learn more about Microsoft Azure WebJobs SDK, please see http://go.microsoft.com/fwlink/?LinkID=320976
     public class Program
     {
-        private static readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private static CancellationTokenSource myTokenSource; 
         private static string ButlerWorkFlowManagerHostConfigKey = "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole";
         private static MediaButler.Common.Host.ConfigurationData myConfigData;
-
+        private static JobHost host;
         private static string GetConnString()
         {
 
             
             return System.Configuration.ConfigurationManager.AppSettings["MediaButler.ConfigurationStorageConnectionString"];
         }
+
+       
         static void Main()
         {
-
             JobHostConfiguration config = new JobHostConfiguration();
             config.StorageConnectionString = GetConnString();
             config.DashboardConnectionString = config.StorageConnectionString;
-            JobHost host = new JobHost(config);
+            myTokenSource = new CancellationTokenSource();
+            host = new JobHost(config);
             host.CallAsync(typeof(Program).GetMethod("RunMediaButlerWorkflow"));
             host.CallAsync(typeof(Program).GetMethod("RunMediaButlerWatcher"));
-            host.RunAndBlock();
+            //Replace host.RunAndBlock() with a Token loop
+            while (!myTokenSource.IsCancellationRequested)
+            {
+               
+                System.Threading.Thread.Sleep(10 * 1000);
+            }
+            Trace.TraceWarning("MBF WebJob is shooting down");
         }
         private static void Setup(string ConfigurationStorageConnectionString)
         {
@@ -49,21 +58,35 @@ namespace MediaButlerWebJobHost
         [NoAutomaticTrigger]
         public static async Task RunMediaButlerWorkflow()
         {
-
             Setup(GetConnString());
             MediaButler.Common.Host.MediaButlerHost xHost = new MediaButler.Common.Host.MediaButlerHost(myConfigData);
-
-            await xHost.ExecuteAsync(cancellationTokenSource.Token);
-       
-
+            try
+            {
+                await xHost.ExecuteAsync(myTokenSource.Token);
+            }
+            catch (Exception X)
+            {
+                Trace.TraceError("MBF Workflow Manager Error " + X.Message);
+                myTokenSource.Cancel();
+            }
+            Trace.TraceWarning("MBF Workflow Manager Role end.");
         }
 
         [NoAutomaticTrigger]
         public static async Task RunMediaButlerWatcher()
         {
             MediaButlerWatcherHost XHost = new MediaButlerWatcherHost(GetConnString());
-            await XHost.Run();
-          
+            try
+            {
+                await XHost.Run(myTokenSource.Token);
+            }
+            catch (Exception X)
+            {
+                Trace.TraceError("MBF Watcher Error " + X.Message);
+                myTokenSource.Cancel();
+            }
+            Trace.TraceWarning("MBF Watcher Role end.");
         }
+       
     }
 }

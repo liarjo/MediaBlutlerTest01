@@ -11,21 +11,20 @@ namespace MediaButler.Common.HostWatcher
     {
         private string _storageAccountString;
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private CancellationToken Token;
+
         public MediaButlerWatcherHost(string storageAccountString)
         {
             _storageAccountString = storageAccountString;
-            Token = cancellationTokenSource.Token;
         }
-        public async Task Run()
+        public async Task Run(CancellationToken cancellationToken)
         {
             string s = MediaButler.Common.Configuration.GetConfigurationValue("ContainersToScan", "MediaButler.Workflow.WorkerRole");
             var containers = s.Split(',');
-           string[] ContainersToScan = containers;
+            string[] ContainersToScan = containers;
 
-            var taskFailedRequests = Task.Run(() => JobManager.getWorkflowFailedOperations(Token, _storageAccountString));
-            var taskSuccessfulRequests = Task.Run(() => JobManager.getWorkflowSuccessOperations(Token, _storageAccountString));
-            var taskProcessIncomingJobs = Task.Run(() => BlobWatcher.runInboundJobWatcher(Token, _storageAccountString, ContainersToScan));
+            var taskFailedRequests = Task.Run(() => JobManager.getWorkflowFailedOperations(cancellationToken, _storageAccountString));
+            var taskSuccessfulRequests = Task.Run(() => JobManager.getWorkflowSuccessOperations(cancellationToken, _storageAccountString));
+            var taskProcessIncomingJobs = Task.Run(() => BlobWatcher.runInboundJobWatcher(cancellationToken, _storageAccountString, ContainersToScan));
             Task.WaitAll(taskFailedRequests, taskSuccessfulRequests, taskProcessIncomingJobs);
 
         }

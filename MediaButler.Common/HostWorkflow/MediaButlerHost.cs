@@ -19,6 +19,7 @@ namespace MediaButler.Common.Host
         private MediaButler.Common.workflow.ProcessHandler myProcessHandler;
         private CloudQueue InWorkQueue;
         private string ButlerWorkFlowManagerHostConfigKey ="MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole";
+
         public MediaButlerHost(ConfigurationData Configuration)
         {
             _Configuration = Configuration;
@@ -248,14 +249,13 @@ namespace MediaButler.Common.Host
         {
             //Create de Handler process
             myProcessHandler = new Common.workflow.ProcessHandler(_Configuration.ProcessConfigConn);
-            //Infinite Loop
-            while (true)
+
+            //Workflow manager Loop
+            while (!cancellationToken.IsCancellationRequested)
             {   
                 //2. Execute
                 ExecuteWatcherProcess();
-
                 System.Threading.Thread.Sleep(1000 * _Configuration.SleepDelay);
-                //await Task.Delay(1000 * _Configuration.SleepDelay);
             }
         }
     }
