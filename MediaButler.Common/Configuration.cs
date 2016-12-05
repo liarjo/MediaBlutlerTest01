@@ -35,6 +35,9 @@ namespace MediaButler.Common
         public static string InjectTTMLadminApiKey = "InjectTTML.adminApiKey";
         public static string InjectTTMLindexName = "InjectTTML.indexName";
         public static string SendGridStepConfig = "SendGridStep.Config"; 
+        public static string TextAnalitycsStepLanguage="TextAnalitycsStep.Language";
+        public static string TextAnalitycsStepApiURL = "TextAnalitycsStep.apiURL";
+        public static string TextAnalitycsStepApiKey = "TextAnalitycsStep.apiKey";
     }
     public class Configuration
     {

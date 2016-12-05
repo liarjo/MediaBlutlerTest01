@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace MediaButler.Common.ResourceAccess
 {
-    class ProcessConfiguration : IjsonKeyValue
+    internal class ProcessConfiguration : IjsonKeyValue
     {
         private dynamic _jsonDotControl=null;
         private dynamic _jsonProcess=null;
