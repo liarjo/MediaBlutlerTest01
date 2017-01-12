@@ -188,6 +188,36 @@ namespace MediaButler.Common.ResourceAccess
             return config;
         }
 
-        
+        public void CopyBlob(CloudBlockBlob OrigenBlob, CloudBlobContainer TargetContainer, string blobName)
+        {
+            CloudBlockBlob TargetBlob = TargetContainer.GetBlockBlobReference(blobName);
+            string blobToken = OrigenBlob.GetSharedAccessSignature(
+                new SharedAccessBlobPolicy()
+                {
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessStartTime = DateTime.Now.AddMinutes(-5),
+                    SharedAccessExpiryTime = DateTime.Now.AddMinutes(5)
+                });
+
+            TargetBlob.StartCopy(new Uri(OrigenBlob.Uri.AbsoluteUri + blobToken));
+
+            CloudBlockBlob blobStatusCheck;
+
+            blobStatusCheck = (CloudBlockBlob)TargetContainer.GetBlobReferenceFromServer(TargetBlob.Name);
+
+            while (blobStatusCheck.CopyState.Status == CopyStatus.Pending)
+            {
+                Task.Delay(TimeSpan.FromSeconds(10d)).Wait();
+
+                blobStatusCheck = (CloudBlockBlob)TargetContainer.GetBlobReferenceFromServer(TargetBlob.Name);
+            }
+
+            if (blobStatusCheck.CopyState.Status != CopyStatus.Success)
+            {
+                throw new Exception("Error Copying " + TargetBlob.Name + " Copy Status" + blobStatusCheck.CopyState.Status);
+            }
+
+        }
+       
     }
 }

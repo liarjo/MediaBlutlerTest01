@@ -1,4 +1,5 @@
 ﻿using MediaButler.Common.workflow;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 namespace MediaButler.Common.ResourceAccess
 {
@@ -15,5 +16,6 @@ namespace MediaButler.Common.ResourceAccess
         IjsonKeyValue GetDotControlData(string URL);
         IjsonKeyValue GetProcessConfig(string dotControlUrl, string ProcessTypeId);
         string GetButlerConfigurationValue(string partition, string row);
+        void CopyBlob(CloudBlockBlob OrigenBlob, CloudBlobContainer TargetContainer, string blobName);
     }
 }

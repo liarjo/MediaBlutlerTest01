@@ -146,6 +146,7 @@
     <Compile Include="Base\httpNotificationStep.cs" />
     <Compile Include="Base\SelectAssetByStep.cs" />
     <Compile Include="Base\SetupAMSAccountStep.cs" />
+    <Compile Include="Clipping\AddAssetFilterXmlStep.cs" />
     <Compile Include="CognitiveServices\AzureMLTextAnalyticsClient.cs" />
     <Compile Include="CognitiveServices\IAzureMLTextAnalyticsClient.cs" />
     <Compile Include="CognitiveServices\TextAnalitycsStep.cs" />
