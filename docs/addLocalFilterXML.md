@@ -1,5 +1,5 @@
 
-Add locla filter using XML
+Add local filter to AMS Asset using XML
 ==========================
 
 Introduction
