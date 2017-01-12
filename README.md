@@ -74,6 +74,7 @@
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpCallback.md">How to use HTTP GET callback notification</a>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/httpPostCallBack.md">How to use HTTP POST callback notification</a>
 <li><p><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/HowToCognitiveServicesTextApi.md">How to use Cognitive Services Text Analytics API</a>
+<li><a href="https://github.com/liarjo/MediaBlutlerTest01/blob/master/docs/addLocalFilterXML.md">How to add local filter to assets using a XML</a>
 </ol>
 
 ## Reporting issues and feedback
