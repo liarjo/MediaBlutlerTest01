@@ -96,7 +96,7 @@ Fourth, XML file definition
 To add filters to your AMS asset, you need to use multi file way with  adding a XML filter definition.
 for example this definition has 4 filters on it.
 ```xml
-<?xml version="1.0" encoding="utf-16"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Filters majorVersion="1" minorVersion="1">
   <Filter name="filtro1">
     <Range start="100000000" end="200000000" />
