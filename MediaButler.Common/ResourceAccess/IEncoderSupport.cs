@@ -23,5 +23,6 @@ namespace MediaButler.Common.ResourceAccess
         IJob ExecuteGridJob(string OutputAssetsName, string JobName, string MediaProcessorName, string[] EncodingConfiguration, string TaskNameBase, string AssetId, EventHandler OnJob_Error, EventHandler OnJob_Update);
         string[] GetLoadEncodignProfiles(IjsonKeyValue dotControlData, IjsonKeyValue processData, string jsonKey, List<string> MezzanineFiles, string ProcessConfigConn, string StepConfiguration);
         string GetMediaProcessorName(IjsonKeyValue ProcessConfiguration,  string keyName, string DefaultValue);
+        void ExecuteMultiJobTaskEncode(List<IJobConfiguration> myJobs, string ProcessInstanceId, EventHandler OnJob_Error, EventHandler OnJob_Update);
     }
 }

@@ -18,7 +18,7 @@ namespace MediaButler.Common.ResourceAccess
     public class EncoderSupport : IEncoderSupport
     {
         private CloudMediaContext _MediaServicesContext;
-        private string PreviousJobState="-";
+        //private string PreviousJobState="-";
         public EncoderSupport(CloudMediaContext MediaServicesContext)
         {
             _MediaServicesContext = MediaServicesContext;
@@ -38,11 +38,10 @@ namespace MediaButler.Common.ResourceAccess
         public void StateChanged(object sender, JobStateChangedEventArgs e)
         {
             IJob job = (IJob)sender;
-
-            if (PreviousJobState != e.CurrentState.ToString())
+            if (e.PreviousState != e.CurrentState)
             {
-                PreviousJobState = e.CurrentState.ToString();
-                Trace.TraceInformation("Job {0} state Changed from {1} to {2}", job.Id, e.PreviousState, e.CurrentState);
+                //PreviousJobState = e.CurrentState.ToString();
+                Trace.TraceInformation("Job {0} state Changed from {1} to {2}", job.Name, e.PreviousState, e.CurrentState);
 
             }
         }
@@ -383,7 +382,6 @@ namespace MediaButler.Common.ResourceAccess
             }
             return EncodingProfiles;
         }
-
         public string GetMediaProcessorName(IjsonKeyValue ProcessConfigData, string keyName, string DefaultValue)
         {
             string theValue = DefaultValue;
@@ -392,6 +390,100 @@ namespace MediaButler.Common.ResourceAccess
                 theValue = ProcessConfigData.Read(keyName);
             }
             return theValue;
+        }
+        private string getJobName(IJobConfiguration myJobDef)
+        {
+
+            return string.Format("[{0}]{1}", myJobDef.Id, myJobDef.Processor);
+        }
+        private string getTaskName(IJobConfiguration myJobDef, int id, int layer)
+        {
+            IAsset myInputAsset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myJobDef.InputAssetId[id]).FirstOrDefault();
+            return string.Format("{1}.Task[{0}]{2}", layer, myInputAsset.Name, myJobDef.TaskId[id]);
+        }
+        private string getOutputAssetName(string aName, string pName, string tId)
+        {
+            return string.Format("{0}[{1}]{2}", aName, pName, tId);
+        }     
+        /// <summary>
+        /// Execute one job per processor with multiples task on each job follow the configuration
+        /// </summary>
+        /// <param name="myJobs">List of JOBS to execute</param>
+        /// <param name="ProcessInstanceId">Transaction ID</param>
+        /// <param name="OnJob_Error">On error Event</param>
+        /// <param name="OnJob_Update">On Update event</param>
+        public void ExecuteMultiJobTaskEncode(List<IJobConfiguration> myJobs, string ProcessInstanceId, EventHandler OnJob_Error, EventHandler OnJob_Update)
+        {
+            List<Task> myJobsWorks = new List<Task>();
+            List<IJob> myRunningJobs = new List<IJob>();
+            string jobXNameBase;
+            string taskNameBase;
+            IAsset theOutputAsset = null;
+
+            JobUpdate = OnJob_Update;
+            OnJobError = OnJob_Error;
+
+            foreach (var jobDef in myJobs)
+            {
+                //0. Create a JOB
+                jobXNameBase = getJobName(jobDef);
+                IJob jobX = _MediaServicesContext.Jobs.Create(jobXNameBase);
+                //1. Get AMS Processor
+                var processor = GetLatestMediaProcessorByName(jobDef.Processor);
+                //2. Create JOB tasks
+                for (int i = 0; i < jobDef.TaskDefinition.Count(); i++)
+                {
+                    //2.1. Input Asset
+                    IAsset myInputAsset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == jobDef.InputAssetId[i]).FirstOrDefault();
+
+                    //2.2. Main Task, layer 0
+                    taskNameBase = getTaskName(jobDef, i, 0);
+                    ITask mainTask = jobX.Tasks.AddNew(
+                        taskNameBase,
+                        processor,
+                        jobDef.TaskDefinition[i][0],
+                        TaskOptions.None);
+
+                    mainTask.InputAssets.Add(myInputAsset);
+
+                    theOutputAsset = mainTask.OutputAssets.AddNew(getOutputAssetName(myInputAsset.Name, jobDef.Processor, ProcessInstanceId), AssetCreationOptions.None);
+
+                    //3. Create multiples task for Grid Transcoding
+                    if (jobDef.TaskDefinition[i].Count() > 1)
+                    {
+                        for (int layerID = 1; layerID < jobDef.TaskDefinition[i].Count(); layerID++)
+                        {
+                            taskNameBase = getTaskName(jobDef, i, layerID);
+                            ITask layerTask = jobX.Tasks.AddNew(
+                                taskNameBase,
+                                processor,
+                                jobDef.TaskDefinition[i][layerID], TaskOptions.DoNotCancelOnJobFailure | TaskOptions.DoNotDeleteOutputAssetOnFailure);
+                            layerTask.InputAssets.Add(myInputAsset);
+                            layerTask.OutputAssets.Add(theOutputAsset);
+                        }
+                    }
+                }
+
+                jobX.StateChanged += new EventHandler<JobStateChangedEventArgs>(StateChanged);
+                jobX.Submit();
+                
+                myRunningJobs.Add(jobX);
+
+                myJobsWorks.Add(jobX.GetExecutionProgressTask(CancellationToken.None));
+
+
+            }
+
+            foreach (IJob runningJob in myRunningJobs)
+            {
+                Task taskA = new Task(() => WaitJobFinish(runningJob.Id));
+                taskA.Start();
+                myJobsWorks.Add(taskA);
+            }
+
+            Task.WaitAll(myJobsWorks.ToArray());
+
+
         }
     }
 }

@@ -152,6 +152,8 @@
     <Compile Include="CognitiveServices\TextAnalitycsStep.cs" />
     <Compile Include="Control\MediaButlerCustomStep.cs" />
     <Compile Include="MediaAnalytics\AzureMediaIndexer2Step.cs" />
+    <Compile Include="MediaAnalytics\JobConfiguration.cs" />
+    <Compile Include="MediaAnalytics\MultiJobTaskEncodeStep.cs" />
     <Compile Include="miscellaneous\ListAssetFilesOnRequestLogStep.cs" />
     <Compile Include="miscellaneous\SelectAssetByProcessIDStep.cs" />
     <Compile Include="PremiunEncoder\PremiunConfig.cs" />
