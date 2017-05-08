@@ -146,7 +146,7 @@ function GetFileFromBlob($fileName,$fileURL){
 
 # 0 Set Constants
     Set-Variable TemplateFileURI 'https://raw.githubusercontent.com/liarjo/MediaBlutlerTest01/master/Deployment/mbfAzureDeploy.json' -Option ReadOnly -Force
-    Set-Variable webJobZipURI 'https://mediabutler.blob.core.windows.net/webdeploy/20170112%2F20170112MBF.zip?sr=b&sv=2015-12-11&st=2017-01-12T22%3A07%3A11Z&se=2018-01-12T23%3A07%3A00Z&sp=r&spr=https&sig=0jyk2Ea%2FjU6yxBPmPlgpRdQFizClI%2BGhw1oMZOIXsLU%3D' -Option ReadOnly -Force
+    Set-Variable webJobZipURI 'https://mediabutler.blob.core.windows.net/webdeploy/20170213%2FMBF.zip?sr=b&sv=2015-12-11&st=2017-05-08T18%3A25%3A14Z&se=2019-05-08T19%3A25%3A00Z&sp=r&spr=https&sig=H0YIgCBUtssKJuIjX4X%2FHNxeTgS7AtwQR0rSNwDZvbw%3D' -Option ReadOnly -Force
 
 
 #1. Login With Organizational Account 
