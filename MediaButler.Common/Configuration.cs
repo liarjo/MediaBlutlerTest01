@@ -38,6 +38,8 @@ namespace MediaButler.Common
         public static string TextAnalitycsStepLanguage="TextAnalitycsStep.Language";
         public static string TextAnalitycsStepApiURL = "TextAnalitycsStep.apiURL";
         public static string TextAnalitycsStepApiKey = "TextAnalitycsStep.apiKey";
+        public static string AssetNameSeed = "AssetNameSeed";
+        public static string VideoFileExtension = "VideoFileExtension";
     }
     public class Configuration
     {
