@@ -48,7 +48,7 @@ namespace MediaButler.Common.ResourceAccess
             }
             catch (Exception X)
             {
-                Trace.TraceWarning("Configuration key " + key + "was not availale. " +  X.Message);
+                Trace.TraceWarning("Configuration key " + key + " was not availale. " +  X.Message);
             }
             return aux;
         }

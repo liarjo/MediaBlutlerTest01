@@ -73,8 +73,9 @@ namespace MediaButler.BaseProcess.AzureSearch
         private void UploadTTML(SearchServiceClient serviceClient, string indexName, IAsset myAsset)
         {
             List<IndexAction<videotext>> data = new List<IndexAction<videotext>>();
-           
-            SearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
+            //Update Version
+            //SearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
+            var indexClient = serviceClient.Indexes.GetClient(indexName);
 
             IAssetFile myTTML = (from f in myAsset.AssetFiles select f).Where(f=>f.Name.EndsWith("ttml")).FirstOrDefault();
             ILocator locator = (from l in myAsset.Locators select l).Where(l => l.Type == LocatorType.OnDemandOrigin).FirstOrDefault();

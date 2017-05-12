@@ -30,8 +30,6 @@ namespace MediaButler.BaseProcess
 
         private void Setup()
         {
-            //this.mySenGridData = new SenGridData();
-            //mySenGridData = Newtonsoft.Json.JsonConvert.DeserializeObject<SenGridData>(this.StepConfiguration);
             var myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             IjsonKeyValue myConfig = myBlobManager.GetProcessConfig(myRequest.ButlerRequest.ControlFileUri, myRequest.ProcessTypeId);
             string jsonTx = myConfig.Read(DotControlConfigKeys.SendGridStepConfig);
@@ -44,7 +42,8 @@ namespace MediaButler.BaseProcess
             var credentials = new NetworkCredential(mySenGridData.UserName, mySenGridData.Pswd);
             // Create the email object first, then add the properties.
             SendGridMessage myMessage = new SendGridMessage();
-            myMessage.AddTo(mySenGridData.To);
+            myMessage.AddTo(mySenGridData.To.Split(';').ToList<string>());
+    
             myMessage.From = new MailAddress(mySenGridData.FromMail, mySenGridData.FromName);
             myMessage.Subject = string.Format("Butler Media Process {0} inctance {1}",myRequest.ProcessTypeId,myRequest.ProcessInstanceId);
 

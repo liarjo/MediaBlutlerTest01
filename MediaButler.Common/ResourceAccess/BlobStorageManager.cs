@@ -123,25 +123,15 @@ namespace MediaButler.Common.ResourceAccess
             string sasBlobToken = blob.GetSharedAccessSignature(sasConstraints);
             return blob.Uri + sasBlobToken;
         }
-        public void parkingNewBinaries()
+
+        public byte[] ReadBytesBlob(string blobName)
         {
             CloudBlobContainer container = blobClient.GetContainerReference("mediabutlerbin");
-            
-            foreach (IListBlobItem dll in container.ListBlobs().OfType<CloudBlob>().Where(b => b.Name.EndsWith(".dll")))
-            {
-                
-                Uri myUri = dll.Uri;
-                int seg = myUri.Segments.Length - 1;
-                string name = myUri.Segments[seg];
-                if (!File.Exists(@".\" + name))
-                {
-                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
-                    using (var fileStream = System.IO.File.OpenWrite(@".\" + name))
-                    {
-                        blockBlob.DownloadToStream(fileStream);
-                    }
-                }
-            }
+            var strm = new MemoryStream();
+            var blob = container.GetBlobReference(blobName);
+            blob.DownloadToStream(strm);
+            byte[] asseblyBytes = strm.ToArray();
+            return asseblyBytes;
         }
         public IjsonKeyValue GetDotControlData(string URL)
         {

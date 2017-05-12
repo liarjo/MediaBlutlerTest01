@@ -42,7 +42,11 @@ namespace MediaButler.BaseProcess.Control
         }
         private ICustomStepExecution buildCustomStep(string path, string name)
         {
-            Assembly myAssembly1 = Assembly.LoadFrom(path);
+            Assembly myAssembly1;
+            if (path.IndexOf('\\')!=-1)
+                 myAssembly1 = Assembly.LoadFrom(path);
+            else
+                 myAssembly1 = Assembly.Load(blobManager.ReadBytesBlob(path));
             Type myType = myAssembly1.GetType(name);
             return   (ICustomStepExecution)Activator.CreateInstance(myType);
            
@@ -58,10 +62,10 @@ namespace MediaButler.BaseProcess.Control
             blobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             IjsonKeyValue stepConfig = new jsonKeyValue(StepConfiguration);
             
-            //Lead External Step from DLL
+            
             try
             {
-                blobManager.parkingNewBinaries();
+                //Lead External Step from DLL
                 myCustomStepExecution = buildCustomStep(stepConfig.Read("AssemblyName"), stepConfig.Read("TypeName"));
             }
             catch (Exception X)

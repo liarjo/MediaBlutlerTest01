@@ -12,7 +12,7 @@ namespace MediaButler.Common.ResourceAccess
         void PersistProcessStatus(ProcessSnapShot processSnapshot);
         ProcessSnapShot readProcessSanpShot(string processName, string processId);
         string GetBlobSasUri(string blobUri,int hours);
-        void parkingNewBinaries();
+        byte[] ReadBytesBlob(string blobName);
         IjsonKeyValue GetDotControlData(string URL);
         IjsonKeyValue GetProcessConfig(string dotControlUrl, string ProcessTypeId);
         string GetButlerConfigurationValue(string partition, string row);
