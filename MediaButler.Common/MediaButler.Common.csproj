@@ -98,6 +98,7 @@
       <HintPath>..\packages\System.Spatial.5.7.0\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -123,6 +124,11 @@
     <Compile Include="ResourceAccess\IjsonKeyValue.cs" />
     <Compile Include="ResourceAccess\IEncoderSupport.cs" />
     <Compile Include="ResourceAccess\ProcessConfiguration.cs" />
+    <Compile Include="ResourceAccess\VideoIndexer\IVideoIndexerProvider.cs" />
+    <Compile Include="ResourceAccess\VideoIndexer\ProcessState.cs" />
+    <Compile Include="ResourceAccess\VideoIndexer\VideoIndexerAnswer.cs" />
+    <Compile Include="ResourceAccess\VideoIndexer\VideoIndexerProvider.cs" />
+    <Compile Include="ResourceAccess\VideoIndexer\VideoIndexerProviderFactory.cs" />
     <Compile Include="workflow\ChainRequest.cs" />
     <Compile Include="workflow\ProcessHandler.cs" />
     <Compile Include="workflow\ProcessSnapShot.cs" />

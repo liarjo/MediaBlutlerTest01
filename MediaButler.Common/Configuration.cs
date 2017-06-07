@@ -40,6 +40,12 @@ namespace MediaButler.Common
         public static string TextAnalitycsStepApiKey = "TextAnalitycsStep.apiKey";
         public static string AssetNameSeed = "AssetNameSeed";
         public static string VideoFileExtension = "VideoFileExtension";
+        public static string VideoIndexerStepApiKey = "VideoIndexerStep.ApiKey";
+        public static string VideoIndexerStepEndPoint = "VideoIndexerStep.EndPoint";
+        public static string VideoIndexerStepLanguage = "VideoIndexerStep.Language";
+        public static string VideoIndexerStepMetaData = "VideoIndexerStep.MetaData";
+        public static string VideoIndexerStepDescription = "VideoIndexerStep.Description";
+        public static string VideoIndexerStepPartition = "VideoIndexerStep.Partition";
     }
     public class Configuration
     {

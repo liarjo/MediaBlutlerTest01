@@ -150,6 +150,7 @@
     <Compile Include="CognitiveServices\AzureMLTextAnalyticsClient.cs" />
     <Compile Include="CognitiveServices\IAzureMLTextAnalyticsClient.cs" />
     <Compile Include="CognitiveServices\TextAnalitycsStep.cs" />
+    <Compile Include="CognitiveServices\VideoIndexerStep.cs" />
     <Compile Include="Control\MediaButlerCustomStep.cs" />
     <Compile Include="MediaAnalytics\AzureMediaIndexer2Step.cs" />
     <Compile Include="MediaAnalytics\JobConfiguration.cs" />
