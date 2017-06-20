@@ -16,33 +16,35 @@ namespace MediaButler.BaseProcess
 {
     class IngestMultiMezzamineFilesStep : MediaButler.Common.workflow.StepHandler
     {
-        private string extensionFilter = ".mp4";
+        private string[] extensionFilter = new string[] { ".mp4" };
         ButlerProcessRequest myRequest;
         CloudMediaContext MediaContext;
         IAsset currentAsset = null;
         IjsonKeyValue dotControlData = null;
-
         /// <summary>
-        /// Create empty Asset
+        /// 
         /// </summary>
         /// <returns></returns>
-        private IAsset CreateAsset()
+        private string GetNewAssetName()
         {
+
             string AssetNameSeed = null;
             //If control file exist, this will be namre  of asset
             // second option first MP4
             //third option first file in Mezzamine list
             Uri MezzamineFileUri;
-            if(!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
+            if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
             {
                 //Control file 
                 MezzamineFileUri = new Uri(myRequest.ButlerRequest.ControlFileUri);
                 //Is asset Name on control?
-                AssetNameSeed=dotControlData.Read(DotControlConfigKeys.AssetNameSeed);
-            } 
+                AssetNameSeed = dotControlData.Read(DotControlConfigKeys.AssetNameSeed);
+            }
             else
             {
-                string videoFileUrl = myRequest.ButlerRequest.MezzanineFiles.Where(af => af.EndsWith(extensionFilter, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+                //string videoFileUrl = myRequest.ButlerRequest.MezzanineFiles.Where(af => af.EndsWith(extensionFilter, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                string videoFileUrl = myRequest.ButlerRequest.MezzanineFiles.Where(f => extensionFilter.Any(e => f.ToLower().EndsWith(e))).FirstOrDefault();
                 if (!string.IsNullOrEmpty(videoFileUrl))
                 {
                     //MP4
@@ -55,8 +57,8 @@ namespace MediaButler.BaseProcess
                 }
             }
 
-            int segmentscount = MezzamineFileUri.Segments.Count()-1;
-            
+            int segmentscount = MezzamineFileUri.Segments.Count() - 1;
+
             if (string.IsNullOrEmpty(AssetNameSeed))
             {
                 AssetNameSeed = Uri.UnescapeDataString(MezzamineFileUri.Segments[segmentscount]);
@@ -67,9 +69,16 @@ namespace MediaButler.BaseProcess
                     myRequest.ButlerRequest.WorkflowName,
                     AssetNameSeed,
                     myRequest.ProcessInstanceId);
-           
+            return assetName;
+        }
+        /// <summary>
+        /// Create empty Asset
+        /// </summary>
+        /// <returns></returns>
+        private IAsset CreateAsset()
+        {
+            string assetName = GetNewAssetName(); ;
             IAsset  myAsset = MediaContext.Assets.Create(assetName, AssetCreationOptions.None);
-              
             return myAsset;
         }
         /// <summary>
@@ -91,8 +100,8 @@ namespace MediaButler.BaseProcess
             CloudBlobContainer MezzamineContainer = MezzamineClient.GetContainerReference(myRequest.ButlerRequest.WorkflowName);
 
             //Filter Ingest extensionFilter 
-            foreach (string  urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles.Where(mf=>mf.ToLower().EndsWith(extensionFilter)))
-            {
+            foreach (string  urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles.Where(f => extensionFilter.Any(e => f.ToLower().EndsWith(e))))
+                {
                 Uri xFile = new Uri(urlMezzamineFile);
                 int segmentIndex = xFile.Segments.Count() - 1;
                 //Asset BLOB Xfile
@@ -114,24 +123,12 @@ namespace MediaButler.BaseProcess
                
                 MezzamineBlobName = Uri.UnescapeDataString(MezzamineBlobName);
                 CloudBlockBlob MezzamineBlob = MezzamineContainer.GetBlockBlobReference(MezzamineBlobName);
-               
-                var sas = MezzamineContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy()
-                {
-                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-15),
-                    SharedAccessExpiryTime = DateTime.UtcNow.AddDays(7),
-                    Permissions = SharedAccessBlobPermissions.Read,
-                });
 
-                //USE decode URL for spetial characters
-                var srcBlockBlobSasUri = string.Format("{0}{1}",Uri.UnescapeDataString(MezzamineBlob.Uri.AbsoluteUri), sas);
-                //TODO: upgrade
-                assetBlob.StartCopyFromBlob(new Uri(srcBlockBlobSasUri));
-                
-                
+                assetBlob.StartCopy(MezzamineBlob);
+
                 Trace.TraceInformation("{0} in process {1} processId {2} Start copy  MezzamineFile {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, MezzamineBlobName);
 
-                CloudBlockBlob blobStatusCheck;
-                blobStatusCheck = (CloudBlockBlob)assetContainer.GetBlobReferenceFromServer(AssetBlobName);
+                CloudBlockBlob blobStatusCheck=(CloudBlockBlob)assetContainer.GetBlobReferenceFromServer(AssetBlobName);
                 while (blobStatusCheck.CopyState.Status == CopyStatus.Pending)
                 {
                     Task.Delay(TimeSpan.FromSeconds(10d)).Wait();
@@ -179,7 +176,7 @@ namespace MediaButler.BaseProcess
             
             if (!string.IsNullOrEmpty(myRequest.ButlerRequest.ControlFileUri))
             {
-                //
+                //Update a General Configuration
                 IButlerStorageManager resource = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
                 string jsonControl = resource.ReadTextBlob(new Uri(myRequest.ButlerRequest.ControlFileUri));
                 if (!string.IsNullOrEmpty(jsonControl))
@@ -189,7 +186,7 @@ namespace MediaButler.BaseProcess
                 }
             }
             
-            IEncoderSupport myEncodigSupport = new EncoderSupport(MediaContext);
+           
             if (!string.IsNullOrEmpty(myPrimaryFile))
             {
                 videoFile = currentAsset.AssetFiles.Where(f => f.Name.ToLower()==myPrimaryFile.ToLower()).FirstOrDefault();
@@ -197,10 +194,23 @@ namespace MediaButler.BaseProcess
             }
             if (videoFile==null)
            {
-                videoFile = currentAsset.AssetFiles.Where(f => f.Name.ToLower().EndsWith(extensionFilter)).FirstOrDefault();
+                
+                string VideoFileName = null;
+                foreach (var file in currentAsset.AssetFiles.OrderBy(f => f.ContentFileSize))
+                {
+                    if (extensionFilter.Any(ext => file.Name.ToLower().EndsWith(ext)))
+                    {
+                        VideoFileName = file.Name;
+                        break;
+                    }
+                }
+
+                videoFile = currentAsset.AssetFiles.Where(f => f.Name == VideoFileName).FirstOrDefault();
+
             }
             if (videoFile != null)
             {
+                IEncoderSupport myEncodigSupport = new EncoderSupport(MediaContext);
                 myEncodigSupport.SetPrimaryFile(currentAsset, videoFile);
             }
             else
@@ -217,7 +227,7 @@ namespace MediaButler.BaseProcess
             
             //Video Filter
             if (dotControlData.Read(DotControlConfigKeys.VideoFileExtension)!="")
-                extensionFilter = dotControlData.Read(DotControlConfigKeys.VideoFileExtension);
+                extensionFilter = dotControlData.Read(DotControlConfigKeys.VideoFileExtension).Split(';');
 
             //Media context 
             MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);

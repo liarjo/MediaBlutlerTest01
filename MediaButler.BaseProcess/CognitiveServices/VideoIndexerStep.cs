@@ -92,18 +92,44 @@ namespace MediaButler.BaseProcess.CognitiveServices
             else
             {
                 Trace.TraceInformation($"[{myRequest.ProcessTypeId}] Instance {myRequest.ProcessInstanceId} Video Id: {myData.VideoIndexId}");
+                AddOrUpdateMetadata("VideoIndexId", myData.VideoIndexId);
+                string Id = myData.VideoIndexId.TrimEnd('"').TrimStart('"');
+                string jobProgressPorcentage = "0%";
+                var info = new
+                {
+                    jobid = Id,
+                    StartTme = startTime,
+                    FinishTime = DateTime.Now,
+                    Progress = jobProgressPorcentage,
+                    State = "Submited",
+                    currentTime = DateTime.Now,
+                    OutPut = asset.Name
+                };
+                AddOrUpdateMetadata("JobInfo", Newtonsoft.Json.JsonConvert.SerializeObject(info));
+                myBlobManager.PersistProcessStatus(myRequest);
+
+                int retrayControl = 0;
                 bool sw = true;
                 while (sw)
                 {
                     System.Threading.Thread.Sleep(30 * 1000);
-                    string Id = myData.VideoIndexId.TrimEnd('"').TrimStart('"');
+                   // string Id = myData.VideoIndexId.TrimEnd('"').TrimStart('"');
                     var xState = myVideoIndexer.GetProcessSatet(Id).Result;
                     if (!string.IsNullOrEmpty(xState.ErrorType))
                     {
                         //error
-                        sw = false;
-                        Console.WriteLine($"ErrorType {xState.ErrorType}");
-                        Console.WriteLine($"Message {xState.Message}");
+                        //sw = false;
+                        retrayControl += 1;
+                        Trace.TraceWarning($"ErrorType {xState.ErrorType}");
+                        Trace.TraceWarning($"Message {xState.Message}");
+
+                        if (retrayControl>3)
+                        {
+                            Trace.TraceError($"ErrorType {xState.ErrorType}");
+                            Trace.TraceError($"Message {xState.Message}");
+                            throw new Exception($"Error Id: {Id} ErrorType {xState.ErrorType} ErrorMessage {xState.ErrorType}");
+                        }
+                        
                     }
                     else
                     {
@@ -114,12 +140,15 @@ namespace MediaButler.BaseProcess.CognitiveServices
                         Trace.TraceInformation($"[{myRequest.ProcessTypeId}] Instance {myRequest.ProcessInstanceId} Process Time {span.Minutes} Minutes");
 
                         //double jobProgress = 0;
-                        string jobProgressPorcentage ="0%";
+                       // string jobProgressPorcentage ="0%";
                         if (xState.state == "Processed")
                         {
                             //Finish
                             sw = false;
                             jobProgressPorcentage = "100%";
+                            //Player URL
+                            string playerurl=myVideoIndexer.GetPlayerWidgetUrl(Id).Result;
+                            AddOrUpdateMetadata("PlayerWidgetUrl", playerurl.TrimEnd('"').TrimStart('"'));
                         }
                         else
                         {
@@ -130,7 +159,7 @@ namespace MediaButler.BaseProcess.CognitiveServices
                         string message = string.Format("job {0} Percent complete {1}", Id, jobProgressPorcentage);
                         AddOrUpdateMetadata(Configuration.TranscodingAdvance, message);
                         
-                        var info = new
+                        var currentInfo = new
                             {
                                 jobid = Id,
                                 StartTme = startTime,
@@ -141,7 +170,7 @@ namespace MediaButler.BaseProcess.CognitiveServices
                                 OutPut = asset.Name
                         };
                         
-                        AddOrUpdateMetadata("JobInfo", Newtonsoft.Json.JsonConvert.SerializeObject(info));
+                        AddOrUpdateMetadata("JobInfo", Newtonsoft.Json.JsonConvert.SerializeObject(currentInfo));
 
                         myBlobManager.PersistProcessStatus(myRequest);
                         Trace.TraceInformation(message);

@@ -10,6 +10,8 @@ namespace MediaButler.Common.ResourceAccess.VideoIndexer
     {
         Task<VideoIndexerAnswer> UploadVideo(Dictionary<string, string> queryString);
         Task<ProcessState> GetProcessSatet(string VideoIndexerId);
+
+        Task<string> GetPlayerWidgetUrl(string VideoIndexerId);
     }
 
 

@@ -21,6 +21,7 @@ namespace MediaButler.Common.ResourceAccess.VideoIndexer
             _HttpClient = new HttpClient();
             _HttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _ApiKey);
             _HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _HttpClient.Timeout = TimeSpan.FromMinutes(5);
         }
         public async Task<VideoIndexerAnswer> UploadVideo(Dictionary<string, string> VideoMetaData)
         {
@@ -63,6 +64,23 @@ namespace MediaButler.Common.ResourceAccess.VideoIndexer
                 myProcessSate.Message = response.ReasonPhrase;
             }
             return myProcessSate;
+        }
+
+        public async Task<string> GetPlayerWidgetUrl(string VideoIndexerId)
+        {
+            string url = "";
+            string uri = $"https://videobreakdown.azure-api.net/Breakdowns/Api/Partner/Breakdowns/{VideoIndexerId}/PlayerWidgetUrl";
+            HttpResponseMessage response = await _HttpClient.GetAsync(uri);
+            if (response.IsSuccessStatusCode)
+            {
+
+                url = (response.Content.ReadAsStringAsync().Result);
+            }
+            else
+            {
+                
+            }
+            return url;
         }
     }
 }

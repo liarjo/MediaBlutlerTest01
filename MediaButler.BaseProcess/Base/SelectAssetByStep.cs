@@ -43,7 +43,7 @@ namespace MediaButler.BaseProcess
                     catch (Exception X)
                     {
 
-                        throw new Exception("Error Loading Asset by name " + AssetName);
+                        throw new Exception($"Error Loading Asset by name {AssetName}: {X.Message}");
                     }
                     
                     break;
