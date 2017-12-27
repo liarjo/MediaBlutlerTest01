@@ -226,7 +226,8 @@ namespace MediaButler.BaseProcess
         }
         private void Setup()
         {
-            _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServiceContext = myRequest.MediaServiceContext();
 
             if (!string.IsNullOrEmpty(this.StepConfiguration))
             {

@@ -22,8 +22,8 @@ namespace MediaButler.BaseProcess.Index
 
         private void Setup()
         {
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-
+            // _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
         }
        
         private  IMediaProcessor GetLatestMediaProcessorByName(string mediaProcessorName)

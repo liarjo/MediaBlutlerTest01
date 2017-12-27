@@ -12,8 +12,12 @@ namespace MediaButler.WorkflowStep
         private string _ConfigData;
         private List<string> _Exceptions;
         private List<string> _Log;
-        private string _MediaAccountKey;
-        private string _MediaAccountName;
+        //private string _MediaAccountKey;
+        //private string _MediaAccountName;
+        private string _Tenant;
+        private string _ClientId;
+        private string _ClientSecret;
+        private string _AMSEndPoint;
         private string _MediaStorageConn;
         private Dictionary<string, string> _MetaData;
         private string _ProcessConfigConn;
@@ -101,32 +105,32 @@ namespace MediaButler.WorkflowStep
             }
         }
 
-        public string MediaAccountKey
-        {
-            get
-            {
-                return _MediaAccountKey;
-            }
+        //public string MediaAccountKey
+        //{
+        //    get
+        //    {
+        //        return _MediaAccountKey;
+        //    }
 
-            set
-            {
-                _MediaAccountKey = value;
-            }
-        }
+        //    set
+        //    {
+        //        _MediaAccountKey = value;
+        //    }
+        //}
 
-        public string MediaAccountName
-        {
+        //public string MediaAccountName
+        //{
 
-            get
-            {
-                return _MediaAccountName;
-            }
+        //    get
+        //    {
+        //        return _MediaAccountName;
+        //    }
 
-            set
-            {
-                _MediaAccountName = value;
-            }
-        }
+        //    set
+        //    {
+        //        _MediaAccountName = value;
+        //    }
+        //}
 
         public string MediaStorageConn
         {
@@ -219,5 +223,10 @@ namespace MediaButler.WorkflowStep
                 _ConfigStep = value;
             }
         }
+
+        public string Tenant { get { return _Tenant; } set { _Tenant = value; } }
+        public string CLientId { get { return _ClientId; } set { _ClientId = value; } }
+        public string ClientSecret { get { return _ClientSecret; } set { _ClientSecret = value; } }
+        public string AMSEndpoint { get { return _AMSEndPoint; } set { _AMSEndPoint = value; } }
     }
 }

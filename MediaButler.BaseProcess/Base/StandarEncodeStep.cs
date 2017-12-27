@@ -232,7 +232,8 @@ namespace MediaButler.BaseProcess
             //My request
             myRequest = (ButlerProcessRequest)request;
             //Media Context
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             //0 Encoding Helper
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             //1. Storage Manager

@@ -47,9 +47,10 @@ namespace MediaButler.BaseProcess
             myMessage.From = new MailAddress(mySenGridData.FromMail, mySenGridData.FromName);
             myMessage.Subject = string.Format("Butler Media Process {0} inctance {1}",myRequest.ProcessTypeId,myRequest.ProcessInstanceId);
 
-            
 
-            _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+
+            //_MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServiceContext = myRequest.MediaServiceContext();
             IAsset x = _MediaServiceContext.Assets.Where(xx => xx.Id == myRequest.AssetId).FirstOrDefault();
             AssetInfo ai = new AssetInfo(x);
 

@@ -97,9 +97,15 @@ namespace MediaButler.Common.workflow
             }
             catch (Exception currentStepException)
             {
+                Trace.TraceError($"HandleRequest Error: {currentStepException.Message}");
+                //Break chain error
+                if (currentStepException.Message.Contains("[*breakall*]"))
+                {
+                    throw currentStepException;
+                }
                 stepException = currentStepException;
                 //Manage Exception and Trigger Compensation
-                manageException(request, currentStepException);
+                //manageException(request, currentStepException);
             }
 
             //Update table status after finish Step

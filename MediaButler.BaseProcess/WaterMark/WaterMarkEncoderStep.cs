@@ -90,7 +90,8 @@ namespace MediaButler.BaseProcess
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             myWaterMarkData = Newtonsoft.Json.JsonConvert.DeserializeObject<WaterMarkData>(this.readJsonControl());
             myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
             SetPrimaryAssetFile();

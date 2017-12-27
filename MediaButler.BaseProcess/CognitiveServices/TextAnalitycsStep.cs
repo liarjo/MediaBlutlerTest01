@@ -27,7 +27,8 @@ namespace MediaButler.BaseProcess.CognitiveServices
         public override void HandleExecute(ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             allPorcessData = myBlobManager.GetProcessConfig(myRequest.ButlerRequest.ControlFileUri, myRequest.ProcessTypeId);
             //1. Select VTT

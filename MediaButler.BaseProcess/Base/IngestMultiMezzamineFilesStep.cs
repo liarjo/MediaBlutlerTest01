@@ -230,7 +230,8 @@ namespace MediaButler.BaseProcess
                 extensionFilter = dotControlData.Read(DotControlConfigKeys.VideoFileExtension).Split(';');
 
             //Media context 
-            MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //MediaContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            MediaContext = myRequest.MediaServiceContext();
             if (IdenpotenceControl())
             {
                 //Create empty asset

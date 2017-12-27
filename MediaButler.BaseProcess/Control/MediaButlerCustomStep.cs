@@ -27,8 +27,13 @@ namespace MediaButler.BaseProcess.Control
             yRequest.ConfigData = xRequest.ConfigData;
             yRequest.Exceptions = xRequest.Exceptions;
             yRequest.Log = xRequest.Log;
-            yRequest.MediaAccountKey = xRequest.MediaAccountKey;
-            yRequest.MediaAccountName = xRequest.MediaAccountName;
+            //yRequest.MediaAccountKey = xRequest.MediaAccountKey;
+            //yRequest.MediaAccountName = xRequest.MediaAccountName;
+            yRequest.Tenant = xRequest.Tenant;
+            yRequest.CLientId = xRequest.ClientId;
+            yRequest.ClientSecret = xRequest.ClientSecret;
+            yRequest.AMSEndpoint = xRequest.AmsEndPoint;
+
             yRequest.MediaStorageConn = xRequest.MediaStorageConn;
             yRequest.MetaData = xRequest.MetaData;
             yRequest.ProcessConfigConn = xRequest.ProcessConfigConn;

@@ -7,8 +7,12 @@ namespace MediaButler.WorkflowStep
     public interface ICustomRequest
     {
         string AssetId { get; set; }
-        string MediaAccountName { get; set; }
-        string MediaAccountKey { get; set; }
+        //string MediaAccountName { get; set; }
+        //string MediaAccountKey { get; set; }
+        string Tenant { get; set; }
+        string CLientId { get; set; }
+        string ClientSecret { get; set; }
+        string AMSEndpoint { get; set; }
         string MediaStorageConn { get; set; }
         string ConfigData { get; set; }
         DateTime TimeStampProcessingStarted { get; set; }

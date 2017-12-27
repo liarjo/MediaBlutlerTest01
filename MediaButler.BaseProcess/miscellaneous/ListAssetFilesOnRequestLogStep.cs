@@ -17,7 +17,8 @@ namespace MediaButler.BaseProcess.miscellaneous
         public override void HandleExecute (ChainRequest request)
         {
            myRequest = (ButlerProcessRequest)request;
-           _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            // _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServiceContext = myRequest.MediaServiceContext();
             IAsset x = _MediaServiceContext.Assets.Where(xx => xx.Id == myRequest.AssetId).FirstOrDefault();
             string recordPattern = "[IAssetFile] /{0}/{1}";
             foreach (IAssetFile xFile in x.AssetFiles)

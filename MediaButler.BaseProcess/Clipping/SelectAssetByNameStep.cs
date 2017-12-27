@@ -37,7 +37,8 @@ namespace MediaButler.BaseProcess.Clipping
         }
         private void SelectMediaAssetbyName()
         {
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             AssetClipFilterData myData = Newtonsoft.Json.JsonConvert.DeserializeObject<AssetClipFilterData>(this.readJsonControl());
             IAsset theAsset =(from m in _MediaServicesContext.Assets select m).Where(m => m.Name == myData.assetName).FirstOrDefault();
 

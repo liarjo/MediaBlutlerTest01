@@ -30,8 +30,8 @@ namespace MediaButler.BaseProcess.Clipping
         }
         private void  ProcessClipFilters()
         {
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             AssetClipFilterData myData = Newtonsoft.Json.JsonConvert.DeserializeObject<AssetClipFilterData>(this.readJsonControl());
             Uri controleFileUri = new Uri(myRequest.ButlerRequest.ControlFileUri);
 

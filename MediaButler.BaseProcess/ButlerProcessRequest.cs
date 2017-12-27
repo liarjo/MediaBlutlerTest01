@@ -16,9 +16,18 @@ namespace MediaButler.BaseProcess
         private bool MessageHiddenControl;
         private Task myMessageHiddenTask;
 
-        private string _MediaServiceAccountName;
-        private string _PrimaryMediaServiceAccessKey;
+        //deprecate
+        //private string _MediaServiceAccountName;
+        //private string _PrimaryMediaServiceAccessKey;
+        private string _tenant;
+        private string _clientId;
+        private string _clientSecret;
+        private string _amsApiEndpoint;
+
+
         private string _MediaStorageConn;
+
+        private CloudMediaContext _MediaServiceContext=null;
 
         public TaskStatus MessageHiddenTaskStatus
         { get
@@ -128,39 +137,139 @@ namespace MediaButler.BaseProcess
                
             }
         }
-        public string MediaAccountName
-        {
-            get
-            {
-                string aux;
-                if (string.IsNullOrEmpty(_MediaServiceAccountName))
-                {
-                    aux=MediaButler.Common.Configuration.GetConfigurationValue("MediaServiceAccountName", "general");
-                }
-                else
-                {
-                    aux = _MediaServiceAccountName;
+        #region Media Service Context
+       
+        //Deprecated
+        //public string MediaAccountName
+        //{
+        //    get
+        //    {
+        //        string aux;
+        //        if (string.IsNullOrEmpty(_MediaServiceAccountName))
+        //        {
+        //            aux = MediaButler.Common.Configuration.GetConfigurationValue("MediaServiceAccountName", "general");
+        //        }
+        //        else
+        //        {
+        //            aux = _MediaServiceAccountName;
 
-                }
-                return aux;
-            }
-        }
-        public string MediaAccountKey
+        //        }
+        //        return aux;
+        //    }
+        //}
+        //public string MediaAccountKey
+        //{
+        //    get
+        //    {
+        //        string aux;
+        //        if (string.IsNullOrEmpty(_PrimaryMediaServiceAccessKey))
+        //        {
+        //            aux = MediaButler.Common.Configuration.GetConfigurationValue("PrimaryMediaServiceAccessKey", "general");
+        //        }
+        //        else
+        //        {
+        //            aux = _PrimaryMediaServiceAccessKey;
+        //        }
+        //        return aux;
+        //    }
+        //}
+
+        /// <summary>
+        /// service principal authentication: Client ID
+        /// </summary>
+        public string ClientId
         {
             get
             {
-                string aux;
-                if (string.IsNullOrEmpty(_PrimaryMediaServiceAccessKey))
+                if (string.IsNullOrEmpty(_clientId))
                 {
-                    aux= MediaButler.Common.Configuration.GetConfigurationValue("PrimaryMediaServiceAccessKey", "general");
+                    _clientId = MediaButler.Common.Configuration.GetConfigurationValue("clientId", "general");
                 }
-                else
-                {
-                    aux = _PrimaryMediaServiceAccessKey;
-                }
-                return aux;
+                return _clientId;
             }
         }
+        /// <summary>
+        /// service principal authentication: Client Secret
+        /// </summary>
+        public string ClientSecret
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_clientSecret))
+                {
+                    _clientSecret = MediaButler.Common.Configuration.GetConfigurationValue("clientSecret", "general");
+                }
+              
+                return _clientSecret;
+            }
+        }
+        /// <summary>
+        /// service principal authentication: AMS endpoint
+        /// </summary>
+        public string AmsEndPoint
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_amsApiEndpoint))
+                {
+                    _amsApiEndpoint = MediaButler.Common.Configuration.GetConfigurationValue("amsApiEndpoint", "general");
+                }
+                
+              
+                return _amsApiEndpoint;
+            }
+        }/// <summary>
+         /// service principal authentication: Tenant
+         /// </summary>
+        public string Tenant
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_tenant))
+                {
+                    _tenant = MediaButler.Common.Configuration.GetConfigurationValue("tenant", "general");
+                }
+               
+                return _tenant;
+            }
+        }
+        /// <summary>
+        /// Get Azure Media Services Context.
+        /// </summary>
+        /// <returns></returns>
+        public CloudMediaContext MediaServiceContext()
+        {
+            if (_MediaServiceContext == null)
+            {
+                //Explicit service principal authentication configuration validations
+                if (string.IsNullOrEmpty(this.Tenant) || (string.IsNullOrEmpty(this.ClientId)) || (string.IsNullOrEmpty(this.ClientSecret)) || (string.IsNullOrEmpty(this.AmsEndPoint)))
+                {
+                    string error = $"MediaServiceContext service principal authentication prameters error: Tenant={_tenant}/ClientId={_clientId}/ClientSecret={_clientSecret}/AMPEndpoint={_amsApiEndpoint} [*breakall*]";
+                    Trace.TraceError(error);
+                    throw new Exception(error);
+                }
+                try
+                {
+                    var tokenCredentials = new AzureAdTokenCredentials(
+                    this.Tenant,
+                    new AzureAdClientSymmetricKey(this.ClientId, this.ClientSecret),
+                    AzureEnvironments.AzureCloudEnvironment);
+
+                    var tokenProvider = new AzureAdTokenProvider(tokenCredentials);
+
+                    _MediaServiceContext = new CloudMediaContext(new Uri(this.AmsEndPoint), tokenProvider);
+                }
+                catch (Exception X )
+                {
+                   
+                    throw new Exception($"MediaServiceContext service principal authentication error: {X.Message} Tenant={_tenant}/ClientId={_clientId}/ClientSecret={_clientSecret}/AMPEndpoint={_amsApiEndpoint} [*breakall*]");
+                }
+                
+            }
+            return _MediaServiceContext ;
+        }
+#endregion
+
         public string MediaStorageConn
         {
             get
@@ -194,18 +303,21 @@ namespace MediaButler.BaseProcess
                 StopMessageHidden();
             }
         }
-        /// <summary>
-        /// Change default AMS
-        /// </summary>
-        /// <param name="MediaAccountName"></param>
-        /// <param name="MediaAccountKey"></param>
-        public void ChangeMediaServices(string MediaAccountName, string MediaAccountKey, string MediaStorageConn)
-        {
-            _MediaServiceAccountName = MediaAccountName;
-            _PrimaryMediaServiceAccessKey = MediaAccountKey;
-            _MediaStorageConn = MediaStorageConn;
-            Trace.TraceInformation("{0} Changed default AMS to ", this.GetType().FullName, _MediaServiceAccountName);
-        }
+       
+        //TODO: Fix to use service Principal
+        ///// <summary>
+        ///// Change default AMS
+        ///// </summary>
+        ///// <param name="MediaAccountName"></param>
+        ///// <param name="MediaAccountKey"></param>
+        //public void ChangeMediaServices(string MediaAccountName, string MediaAccountKey, string MediaStorageConn)
+        //{
+        //    //TODO: fix
+        //    _MediaServiceAccountName = MediaAccountName;
+        //    _PrimaryMediaServiceAccessKey = MediaAccountKey;
+        //    _MediaStorageConn = MediaStorageConn;
+        //    Trace.TraceInformation("{0} Changed default AMS to ", this.GetType().FullName, _MediaServiceAccountName);
+        //}
         
     }
 

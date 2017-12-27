@@ -161,7 +161,8 @@ namespace MediaButler.PremiunEncoder
             //Request
             myRequest = (ButlerProcessRequest)request;
             //Media Context
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             // Original Asset
             myAssetOriginal = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
             //Setup Step

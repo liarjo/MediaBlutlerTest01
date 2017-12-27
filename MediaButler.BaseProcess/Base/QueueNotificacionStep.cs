@@ -41,7 +41,8 @@ namespace MediaButler.BaseProcess
         private QueueNotificacionData myConfig;
         private void Setup()
         {
-            _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServiceContext = myRequest.MediaServiceContext();
             if (!string.IsNullOrEmpty(this.StepConfiguration))
             {
                 myConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<QueueNotificacionData>(this.StepConfiguration);

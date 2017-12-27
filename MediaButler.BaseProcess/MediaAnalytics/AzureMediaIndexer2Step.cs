@@ -78,7 +78,8 @@ namespace MediaButler.BaseProcess.MediaAnalytics
         {
             //1. Step Setup 
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             myEncodigSupport = new EncoderSupport(_MediaServicesContext);
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             IjsonKeyValue dotControlData = myBlobManager.GetDotControlData(myRequest.ButlerRequest.ControlFileUri);

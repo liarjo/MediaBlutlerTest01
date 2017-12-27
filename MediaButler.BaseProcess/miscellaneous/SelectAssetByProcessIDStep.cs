@@ -24,7 +24,8 @@ namespace MediaButler.BaseProcess.miscellaneous
         public override void HandleExecute(ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
 
             IAsset theAsset = (from m in _MediaServicesContext.Assets select m).Where(m => m.AlternateId == myRequest.ProcessInstanceId).FirstOrDefault();
          

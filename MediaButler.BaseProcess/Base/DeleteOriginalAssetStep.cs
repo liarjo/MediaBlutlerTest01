@@ -16,7 +16,8 @@ namespace MediaButler.BaseProcess
         public override void HandleExecute(Common.workflow.ChainRequest request)
         {
              myRequest = (ButlerProcessRequest)request;
-            _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            // _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServiceContext = myRequest.MediaServiceContext();
 
             ////Get transcode asset
             //Lista all media parent from current Asset

@@ -15,7 +15,8 @@ namespace MediaButler.BaseProcess.Index
         private IAsset theAsset;
         private void Setup()
         {
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            ///_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             theAsset = _MediaServicesContext.Assets.Where(xx => xx.Id == myRequest.AssetId).FirstOrDefault();
         }
         private void LogInfo()

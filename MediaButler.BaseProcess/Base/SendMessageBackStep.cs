@@ -38,10 +38,11 @@ namespace MediaButler.BaseProcess
             myButlerResponse.TimeStampRequestSubmitted = myRequest.ButlerRequest.TimeStampUTC;
             myButlerResponse.StorageConnectionString = myRequest.ButlerRequest.StorageConnectionString;
 
-            
 
 
-            CloudMediaContext _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+
+            //CloudMediaContext _MediaServiceContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            var _MediaServiceContext = myRequest.MediaServiceContext();
             IAsset x = _MediaServiceContext.Assets.Where(xx => xx.Id == myRequest.AssetId).FirstOrDefault();
             AssetInfo ai = new AssetInfo(x);
             StringBuilder AssetInfoResume = ai.GetStatsTxt();

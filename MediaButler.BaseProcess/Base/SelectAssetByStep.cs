@@ -32,7 +32,8 @@ namespace MediaButler.BaseProcess
                     myRequest.AssetId = dotControlData.Read(DotControlConfigKeys.SelectAssetByValue);
                     break;
                 default:
-                    var _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+                    //var _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+                    var _MediaServicesContext = myRequest.MediaServiceContext();
                     string AssetName = dotControlData.Read(DotControlConfigKeys.SelectAssetByValue);
                     try
                     {

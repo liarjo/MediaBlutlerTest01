@@ -61,8 +61,8 @@ namespace MediaButler.BaseProcess.CognitiveServices
             myRequest = (ButlerProcessRequest)request;
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
             var allPorcessData = myBlobManager.GetProcessConfig(myRequest.ButlerRequest.ControlFileUri, myRequest.ProcessTypeId);
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
 
             var ApiKey = allPorcessData.Read(DotControlConfigKeys.VideoIndexerStepApiKey);
             var EndPoint = allPorcessData.Read(DotControlConfigKeys.VideoIndexerStepEndPoint);

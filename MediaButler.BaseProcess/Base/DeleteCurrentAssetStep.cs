@@ -23,8 +23,8 @@ namespace MediaButler.BaseProcess.Base
         public override void HandleExecute(ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
-
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             IAsset theAsset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();
 
             theAsset.Delete();

@@ -28,7 +28,8 @@ namespace MediaButler.BaseProcess.Clipping
         public override void HandleExecute(ChainRequest request)
         {
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            // _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             myBlobManager = BlobManagerFactory.CreateBlobManager(myRequest.ProcessConfigConn);
 
             IAsset asset = (from m in _MediaServicesContext.Assets select m).Where(m => m.Id == myRequest.AssetId).FirstOrDefault();

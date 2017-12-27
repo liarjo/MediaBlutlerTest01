@@ -65,7 +65,8 @@ namespace MediaButler.BaseProcess.ServiceBus
         {
             //Standar Init Step activities
             myRequest = (ButlerProcessRequest)request;
-            _MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            //_MediaServicesContext = new CloudMediaContext(myRequest.MediaAccountName, myRequest.MediaAccountKey);
+            _MediaServicesContext = myRequest.MediaServiceContext();
             //Read ServiceBus configuration from Step configuration
             myServiceBusData = Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceBusData>(this.StepConfiguration);
             //Map info to output
