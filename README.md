@@ -13,7 +13,7 @@
 <h3 id="setup-pre-requisites">Setup pre requisites</h3>
 <ol style="list-style-type: decimal">
 <li><p>Azure Subscription</p></li>
-<li><p>Azure Media Services Name and Key</p></li>
+<li><p>Azure Media Services tenant, clientId, ClientSecret and AMS API endpoint to use Azure Active Directory (AAD) authentication. More details <a href="https://azure.microsoft.com/en-us/blog/azure-media-service-aad-auth-and-acs-deprecation/" target="_blank">here</a></p></li>
 <li><p>Azure Media Services Storage Account Name and Key</p></li>
 </ol>
 <h3 id="deploy-media-butler-on-a-web-job">Deploy Media Butler on a Web JOB</h3>
@@ -34,8 +34,10 @@
 </ol>
 <p>The scripts parameters are:</p>
 <ol style="list-style-type: lower-alpha">
-<li><p>MediaServiceAccountName: Media services account name.</p></li>
-<li><p>MediaServiceAccountKey: Media services account Key.</p></li>
+<li><p>tenant: Media services account tenant.</p></li>
+<li><p>clientId: Service principal client ID.</p></li>
+<li><p>clientSecret: Service principal client secret.</p></li>
+<li><p>amsApiEndpoint: Azure Media Services API endpoint.</p></li>
 <li><p>MediaServiceStorageName: Media services storage account name.</p></li>
 <li><p>MediaServiceStorageKey: Media Services account key.</p></li>
 <li><p>SubscriptionName: Subscription name where deploy MBF.</p></li>

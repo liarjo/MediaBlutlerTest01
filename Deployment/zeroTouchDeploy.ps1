@@ -1,10 +1,15 @@
 ﻿
 
 param(
+    
     [Parameter(Mandatory=$true)]
-    [string] $MediaServiceAccountName,
+    [string] $tenant,
     [Parameter(Mandatory=$true)]
-    [string] $MediaServiceAccountKey,
+    [string] $clientId,
+    [Parameter(Mandatory=$true)]
+    [string] $clientSecret,
+    [Parameter(Mandatory=$true)]
+    [string] $amsApiEndpoint,
     [Parameter(Mandatory=$true)]
     [string] $MediaServiceStorageName,
     [Parameter(Mandatory=$true)]
@@ -70,12 +75,15 @@ function createStageStorage(){
 # Insert MBF configuration
     InsertButlerConfig -PartitionKey "MediaButler.Common.workflow.ProcessHandler" -RowKey "IsMultiTask" -value "1" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
     InsertButlerConfig -PartitionKey "MediaButler.Workflow.ButlerWorkFlowManagerWorkerRole" -RowKey "roleconfig" -value "{""MaxCurrentProcess"":1,""SleepDelay"":5,""MaxDequeueCount"":1}" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "MediaServiceAccountName" -value $MediaServiceAccountName -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "BlobWatcherPollingSeconds" -value "10" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "FailedQueuePollingSeconds" -value "10" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
     InsertButlerConfig -PartitionKey "general" -RowKey "MediaStorageConn" -value $MBFMediaServiceStorageConn -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "PrimaryMediaServiceAccessKey" -value $MediaServiceAccountKey -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
-    InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "SuccessQueuePollingSeconds" -value "10" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    #AAD authentication
+    InsertButlerConfig -PartitionKey "general" -RowKey "clientId" -value $clientId -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "clientSecret" -value $clientSecret -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "tenant" -value $tenant -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
+    InsertButlerConfig -PartitionKey "general" -RowKey "amsApiEndpoint" -value $amsApiEndpoint -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
     #Incoming Filter config Sample
     InsertButlerConfig -PartitionKey "MediaButler.Workflow.WorkerRole" -RowKey "FilterPatterns" -value ".test,.mp5" -accountName $MBFStageStorageName -accountKey $MBFStorageKey -tableName "ButlerConfiguration"  
 }

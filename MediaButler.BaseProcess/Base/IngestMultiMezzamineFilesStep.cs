@@ -86,9 +86,6 @@ namespace MediaButler.BaseProcess
         /// </summary>
         private void IngestAssets()
         {
-            IAccessPolicy writePolicy = MediaContext.AccessPolicies.Create("writePolicy_" + currentAsset.Name, TimeSpan.FromMinutes(120), AccessPermissions.Write);
-            ILocator destinationLocator = MediaContext.Locators.CreateLocator(LocatorType.Sas, currentAsset, writePolicy);
-  
             //Asset Storage
             CloudStorageAccount assetStorageCount = CloudStorageAccount.Parse(myRequest.MediaStorageConn);
             CloudBlobClient assetClient = assetStorageCount.CreateCloudBlobClient();
@@ -100,8 +97,8 @@ namespace MediaButler.BaseProcess
             CloudBlobContainer MezzamineContainer = MezzamineClient.GetContainerReference(myRequest.ButlerRequest.WorkflowName);
 
             //Filter Ingest extensionFilter 
-            foreach (string  urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles.Where(f => extensionFilter.Any(e => f.ToLower().EndsWith(e))))
-                {
+            foreach (string urlMezzamineFile in myRequest.ButlerRequest.MezzanineFiles.Where(f => extensionFilter.Any(e => f.ToLower().EndsWith(e))))
+            {
                 Uri xFile = new Uri(urlMezzamineFile);
                 int segmentIndex = xFile.Segments.Count() - 1;
                 //Asset BLOB Xfile
@@ -109,9 +106,9 @@ namespace MediaButler.BaseProcess
                 CloudBlockBlob assetBlob = assetContainer.GetBlockBlobReference(AssetBlobName);
 
                 assetContainer.SetPermissions(new BlobContainerPermissions
-                    {
-                        PublicAccess = BlobContainerPublicAccessType.Blob
-                    }
+                {
+                    PublicAccess = BlobContainerPublicAccessType.Blob
+                }
                 );
 
                 //Mezzamine BLOB Xfile
@@ -120,15 +117,30 @@ namespace MediaButler.BaseProcess
                 {
                     MezzamineBlobName += xFile.Segments[i];
                 }
-               
+
                 MezzamineBlobName = Uri.UnescapeDataString(MezzamineBlobName);
                 CloudBlockBlob MezzamineBlob = MezzamineContainer.GetBlockBlobReference(MezzamineBlobName);
 
-                assetBlob.StartCopy(MezzamineBlob);
+                //FIX: copy between Azure Storage Account
+                // assetBlob.StartCopy(MezzamineBlob);
+                // Create a policy for reading the blob.
+                var policy = new SharedAccessBlobPolicy
+                {
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessStartTime = DateTime.UtcNow. AddDays(-1),
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddDays(1)
+                };
+                // Get SAS of that policy.
+                var sourceBlobToken = MezzamineBlob.GetSharedAccessSignature(policy);
+                // Make a full uri with the sas for the blob.
+                var sourceBlobSAS = string.Format("{0}{1}", MezzamineBlob.Uri, sourceBlobToken);
+                Trace.TraceInformation($"{this.GetType().FullName} in process { myRequest.ProcessTypeId} processId {myRequest.ProcessInstanceId} SASURL MezzamineFile:  {sourceBlobSAS}");
+                assetBlob.StartCopy(new Uri(sourceBlobSAS));
+
 
                 Trace.TraceInformation("{0} in process {1} processId {2} Start copy  MezzamineFile {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, MezzamineBlobName);
 
-                CloudBlockBlob blobStatusCheck=(CloudBlockBlob)assetContainer.GetBlobReferenceFromServer(AssetBlobName);
+                CloudBlockBlob blobStatusCheck = (CloudBlockBlob)assetContainer.GetBlobReferenceFromServer(AssetBlobName);
                 while (blobStatusCheck.CopyState.Status == CopyStatus.Pending)
                 {
                     Task.Delay(TimeSpan.FromSeconds(10d)).Wait();
@@ -137,7 +149,7 @@ namespace MediaButler.BaseProcess
 
                     blobStatusCheck = (CloudBlockBlob)assetContainer.GetBlobReferenceFromServer(AssetBlobName);
                 }
-                
+
                 assetBlob.FetchAttributes();
                 //Add the xFile to Asset
                 var assetFile = currentAsset.AssetFiles.Create(AssetBlobName);
@@ -146,13 +158,9 @@ namespace MediaButler.BaseProcess
                 assetFile.Update();
 
                 Trace.TraceInformation("{0} in process {1} processId {2} finish MezzamineFile {3}", this.GetType().FullName, myRequest.ProcessTypeId, myRequest.ProcessInstanceId, MezzamineBlobName);
-                
+
             }
-            destinationLocator.Delete();
-            writePolicy.Delete();
-
             currentAsset.Update();
-
         }
         private bool IdenpotenceControl()
         {
